@@ -70,6 +70,8 @@ class Config(BaseModel):
     pacgum: int = 42
     points_per_pacgum: int = 10
     points_per_super_pacgum: int = 50
-    points_per_ghost: 200
+    points_per_ghost: int = 200
+    window_width: int = 800
+    window_height: int = 600
     seed: str = "42"
     level_max_time: int = 90

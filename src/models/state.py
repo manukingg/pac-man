@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .config import Config
+from .config_model import Config
 from .ghost import GhostModel
 from .player import PlayerModel
 from .screen import ScreenType

@@ -1,2 +1,7 @@
+from src.models import Config
+from src.app import Application
+
 if __name__ == "__main__":
-    print("Hello, pac man!")
+    config = Config()
+    app = Application(config)
+    app.run()

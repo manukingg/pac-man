@@ -6,7 +6,8 @@ from .player import PlayerModel
 from .screen import ScreenType
 
 
-class GameState(dataclass):
+@dataclass
+class GameState:
     """Mutable state of the current game session."""
     # maze: Any | TODO: Add when maze generator will be integrated
     ghosts: list[GhostModel]
@@ -20,7 +21,8 @@ class GameState(dataclass):
     ghosts_edible_time: float = 0.0
 
 
-class AppState(dataclass):
+@dataclass
+class AppState:
     """Global application state."""
     current_screen: ScreenType
     config: Config

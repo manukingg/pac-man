@@ -1,0 +1,125 @@
+"""Ghost state model."""
+
+from dataclasses import dataclass
+from enum import Enum, auto
+
+from .common import Direction, GridPosition
+
+
+class GhostMode(Enum):
+    """Current behavioral state of a ghost."""
+
+    CHASE = auto()
+    FRIGHTENED = auto()
+    EATEN = auto()
+    RESPAWNING = auto()
+    FROZEN = auto()
+
+
+class GhostKind(Enum):
+    """Identity of one of the four ghosts."""
+
+    BLINKY = auto()
+    PINKY = auto()
+    INKY = auto()
+    CLYDE = auto()
+
+
+@dataclass(slots=True)
+class GhostModel:
+    """Mutable state of a single ghost."""
+
+    kind: GhostKind
+    position: GridPosition
+    spawn_position: GridPosition
+
+    direction: Direction = Direction.NONE
+    mode: GhostMode = GhostMode.CHASE
+
+    respawn_time_remaining: float = 0.0
+    frightened_time_remaining: float = 0.0
+
+    speed_multiplier: float = 1.0
+
+    @property
+    def edible(self) -> bool:
+        """Return whether the ghost can currently be eaten."""
+
+        return self.mode is GhostMode.FRIGHTENED
+
+    @property
+    def dangerous(self) -> bool:
+        """Return whether touching the ghost harms the player."""
+
+        return self.mode is GhostMode.CHASE
+
+    @property
+    def active(self) -> bool:
+        """Return whether the ghost may currently move."""
+
+        return self.mode not in {
+            GhostMode.RESPAWNING,
+            GhostMode.FROZEN,
+        }
+
+    def move_to(self, position: GridPosition) -> None:
+        """Move the ghost to a validated maze position."""
+
+        self.position = position
+
+    def change_direction(self, direction: Direction) -> None:
+        """Change the ghost movement direction."""
+
+        self.direction = direction
+
+    def frighten(self, duration: float) -> None:
+        """Make the ghost edible for a limited duration."""
+
+        if self.mode in {
+            GhostMode.EATEN,
+            GhostMode.RESPAWNING,
+        }:
+            return
+
+        self.mode = GhostMode.FRIGHTENED
+        self.frightened_time_remaining = max(0.0, duration)
+
+    def restore_chase_mode(self) -> None:
+        """Return the ghost to its normal chase behavior."""
+
+        self.mode = GhostMode.CHASE
+        self.frightened_time_remaining = 0.0
+
+    def eat(self, respawn_delay: float) -> None:
+        """Mark the ghost as eaten and start its respawn delay."""
+
+        if not self.edible:
+            return
+
+        self.mode = GhostMode.EATEN
+        self.frightened_time_remaining = 0.0
+        self.respawn_time_remaining = max(0.0, respawn_delay)
+
+    def begin_respawn(self) -> None:
+        """Move the ghost back to its corner and start respawning."""
+
+        self.position = self.spawn_position
+        self.direction = Direction.NONE
+        self.mode = GhostMode.RESPAWNING
+
+    def finish_respawn(self) -> None:
+        """Return the ghost to the active chase state."""
+
+        self.mode = GhostMode.CHASE
+        self.respawn_time_remaining = 0.0
+
+    def freeze(self) -> None:
+        """Freeze the ghost for cheat mode."""
+
+        self.mode = GhostMode.FROZEN
+
+    def unfreeze(self) -> None:
+        """Return a frozen ghost to chase mode."""
+
+        if self.mode is GhostMode.FROZEN:
+            self.mode = GhostMode.CHASE

@@ -3,12 +3,15 @@ UV := uv
 
 ENTRYPOINT := pac-man.py
 CONFIG ?= config.json
+MAZE_WHEEL := mazegenerator-2.1.0-py3-none-any.whl
 
 .PHONY: all install run debug clean lint lint-strict test format help
 
 all: install lint
 
 install:
+	@test -f "$(MAZE_WHEEL)" || \
+		(echo "Error: required maze generator package not found: $(MAZE_WHEEL)" && exit 1)
 	$(UV) sync
 
 run:
@@ -49,7 +52,7 @@ clean:
 
 help:
 	@echo "Available commands:"
-	@echo "  make install                  Install dependencies"
+	@echo "  make install                  Install dependencies and maze generator"
 	@echo "  make run                      Run with config.json"
 	@echo "  make run CONFIG=other.json    Run with another config"
 	@echo "  make debug                    Run through pdb"

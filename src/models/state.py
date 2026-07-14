@@ -4,22 +4,26 @@ from .config_model import Config
 from .ghost import GhostModel
 from .player import PlayerModel
 from .screen import ScreenType
+from .maze import MazeModel
 
 
 @dataclass
 class GameState:
     """Mutable state of the current game session."""
-    # maze: Any | TODO: Add when maze generator will be integrated
+    maze: MazeModel
     ghosts: list[GhostModel]
     player: PlayerModel
-    score: int = 0
-    lives: int = 3
-    level: int = 1
-    remaining_time: float = 90.0
+    score: int
+    lives: int
+    level: int
+    remaining_time: float
     paused: bool = False
-    ghosts_edible: bool = False
-    ghosts_edible_time: float = 0.0
+    power_mode_remaining: float = 0.0
 
+    @property
+    def ghosts_are_edible(self) -> bool:
+        """Return whether ghosts are currently edible."""
+        return self.power_mode_remaining > 0.0
 
 @dataclass
 class AppState:

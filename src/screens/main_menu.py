@@ -8,21 +8,21 @@ class MainMenuScreen(Screen):
     """Main application menu."""
 
     def handle_event(
-        self,
+        self: "MainMenuScreen",
         event: object,
         state: AppState,
     ) -> None:
         pass
 
     def update(
-        self,
+        self: "MainMenuScreen",
         delta_time: float,
         state: AppState,
     ) -> None:
         pass
 
     def render(
-        self,
+        self: "MainMenuScreen",
         display: Display,
         state: AppState,
     ) -> None:

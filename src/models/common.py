@@ -21,7 +21,7 @@ class GridPosition:
     row: int
     column: int
 
-    def moved(self, direction: Direction) -> "GridPosition":
+    def moved(self: "GridPosition", direction: Direction) -> "GridPosition":
         """Return a neighboring position in the given direction."""
 
         offsets: dict[Direction, tuple[int, int]] = {

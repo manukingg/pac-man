@@ -9,7 +9,7 @@ from .models import AppState, ScreenType
 class Application:
     """Main Pac-Man application."""
 
-    def __init__(self, config: Config) -> None:
+    def __init__(self: "Application", config: Config) -> None:
         self._state = AppState(
             current_screen=ScreenType.MAIN_MENU,
             config=config,
@@ -27,7 +27,7 @@ class Application:
 
         self._clock = pygame.time.Clock()
 
-    def run(self) -> None:
+    def run(self: "Application") -> None:
         """Run the application loop."""
 
         try:

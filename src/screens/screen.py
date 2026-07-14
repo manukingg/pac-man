@@ -9,7 +9,7 @@ class Screen(ABC):
 
     @abstractmethod
     def handle_event(
-        self,
+        self: "Screen",
         event: object,
         state: AppState,
     ) -> None:
@@ -17,7 +17,7 @@ class Screen(ABC):
 
     @abstractmethod
     def update(
-        self,
+        self: "Screen",
         delta_time: float,
         state: AppState,
     ) -> None:
@@ -25,7 +25,7 @@ class Screen(ABC):
 
     @abstractmethod
     def render(
-        self,
+        self: "Screen",
         display: Display,
         state: AppState,
     ) -> None:

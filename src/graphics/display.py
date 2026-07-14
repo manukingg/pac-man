@@ -5,7 +5,7 @@ class Display:
     """Pygame backend restricted to MLX-like operations."""
 
     def __init__(
-        self,
+        self: "Display",
         width: int,
         height: int,
         title: str,
@@ -17,11 +17,11 @@ class Display:
 
         self._font = pygame.font.Font(None, 36)
 
-    def clear(self, color: int) -> None:
+    def clear(self: "Display", color: int) -> None:
         self._screen.fill(self._to_rgb(color))
 
     def draw_text(
-        self,
+        self: "Display",
         x: int,
         y: int,
         text: str,
@@ -34,10 +34,10 @@ class Display:
         )
         self._screen.blit(rendered, (x, y))
 
-    def present(self) -> None:
+    def present(self: "Display") -> None:
         pygame.display.flip()
 
-    def close(self) -> None:
+    def close(self: "Display") -> None:
         pygame.quit()
 
     @staticmethod

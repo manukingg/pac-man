@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
     
 DEFAULT_LEVELS = [
     {"level_number": 1, "width": "15", "height": "15"},
@@ -15,16 +15,24 @@ DEFAULT_LEVELS = [
 
 
 class Level(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     level_number: int
     width: int
     height: int
 
 
 class Config(BaseModel):
+    model_config = ConfigDict(extra="ignore", validate_default=True)
+
     highscore_filename: str = "highscores.json"
-    levels: list[Level] = DEFAULT_LEVELS
+    levels: list[Level] = Field(
+        default_factory=lambda: [
+            Level.model_validate(level) for level in DEFAULT_LEVELS
+        ]
+    )
     lives: int = Field(default=3, ge=1, le=10)
-    pacgum: int = 42
+    pacgum: int = Field(default=42, ge=0)
     points_per_pacgum: int = Field(default=10, ge=1, le=1000)
     points_per_super_pacgum: int = Field(default=50, ge=10, le=3000)
     points_per_ghost: int = Field(default=200, ge=15, le=5000)

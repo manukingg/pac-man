@@ -4,13 +4,13 @@ from .config_model import Config
 from .ghost import GhostModel
 from .player import PlayerModel
 from .screen import ScreenType
-from .maze import MazeModel
+from .maze import MazeGrid
 
 
 @dataclass
 class GameState:
     """Mutable state of the current game session."""
-    maze: MazeModel
+    maze: MazeGrid
     ghosts: list[GhostModel]
     player: PlayerModel
     score: int

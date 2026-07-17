@@ -4,6 +4,7 @@ from .models import Config
 from .graphics import Display
 from .screens import Screen, MainMenuScreen
 from .models import AppState, ScreenType
+from .factories import GameStateFactory
 
 
 class Application:
@@ -24,6 +25,8 @@ class Application:
         self._screens: dict[ScreenType, Screen] = {
             ScreenType.MAIN_MENU: MainMenuScreen(),
         }
+
+        self._game_state_factory = GameStateFactory(config)
 
         self._clock = pygame.time.Clock()
 

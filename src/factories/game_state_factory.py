@@ -1,17 +1,96 @@
-from ..models import GameState, Config, PlayerModel, GhostModel
+from ..models import (
+    Config,
+    GameState,
+    GhostKind,
+    GhostModel,
+    GridPosition,
+    Level,
+    PlayerModel,
+)
+from ..services import MazeGeneratorService
 
 
 class GameStateFactory:
     """Create initialized game states."""
 
     def __init__(
-        self: 'GameStateFactory',
-        config: Config
+        self: "GameStateFactory",
+        config: Config,
     ) -> None:
         self.__config = config
+        self.__generator_service = MazeGeneratorService(config)
 
-    def __create_player(self: 'GameStateFactory') -> PlayerModel:
-        pass
+    def create(
+        self: "GameStateFactory",
+        level: Level,
+    ) -> GameState:
+        """Create a fully initialized game state."""
 
-    def __create_ghosts(self: 'GameStateFactory') -> list[GhostModel]:
-        pass
+        maze = self.__generator_service.generate()
+        player = self.__create_player(level)
+        ghosts = self.__create_ghosts(level)
+
+        return GameState(
+            maze=maze,
+            ghosts=ghosts,
+            player=player,
+            lives=self.__config.lives,
+            level=level.number,
+            remaining_time=float(self.__config.level_max_time),
+        )
+
+    def __create_player(
+        self: "GameStateFactory",
+        level: Level,
+    ) -> PlayerModel:
+        """Create the player in the center of the level."""
+
+        position = GridPosition(
+            row=level.height // 2,
+            column=level.width // 2,
+        )
+
+        return PlayerModel(
+            position=position,
+            spawn_position=position,
+        )
+
+    def __create_ghosts(
+        self: "GameStateFactory",
+        level: Level,
+    ) -> list[GhostModel]:
+        """Create one ghost in each corner of the level."""
+
+        spawn_positions = {
+            GhostKind.BLINKY: GridPosition(
+                row=0,
+                column=0,
+            ),
+            GhostKind.PINKY: GridPosition(
+                row=0,
+                column=level.width - 1,
+            ),
+            GhostKind.INKY: GridPosition(
+                row=level.height - 1,
+                column=0,
+            ),
+            GhostKind.CLYDE: GridPosition(
+                row=level.height - 1,
+                column=level.width - 1,
+            ),
+        }
+
+        ghosts: list[GhostModel] = []
+
+        for kind in GhostKind:
+            spawn_position = spawn_positions[kind]
+
+            ghosts.append(
+                GhostModel(
+                    kind=kind,
+                    position=spawn_position,
+                    spawn_position=spawn_position,
+                )
+            )
+
+        return ghosts

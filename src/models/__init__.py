@@ -1,8 +1,10 @@
 from .state import GameState, AppState
 from .screen import ScreenType
-from .config_model import Config
+from .config_model import Config, Level
 from .player import PlayerModel
-from .ghost import GhostModel
+from .ghost import GhostModel, GhostKind
+from .maze import Wall, MazeGrid
+from .common import GridPosition
 
 
 __all__ = (
@@ -11,5 +13,10 @@ __all__ = (
     Config,
     ScreenType,
     PlayerModel,
-    GhostModel
+    GhostModel,
+    MazeGrid,
+    Wall,
+    Level,
+    GridPosition,
+    GhostKind
 )

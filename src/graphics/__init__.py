@@ -1,4 +1,4 @@
-from .display import Display
+from .pygame_wrapper import Display
 
 
 __all__ = (Display)

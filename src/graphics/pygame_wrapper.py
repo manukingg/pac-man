@@ -40,7 +40,7 @@ class PygameWrapper:
         color: Color,
     ) -> None:
         if 0 <= x < image.width and 0 <= y < image.height:
-            image._surface.set_at((x, y), color)
+            image.set_at((x, y), color)
 
     def get_pixel(self: "PygameWrapper", image: Image, x: int, y: int) -> Color:
         return image.get_at(x, y)

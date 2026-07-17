@@ -31,4 +31,5 @@ class Image:
     def blit(self: "Image", source: "Image", coords: tuple[int, int]) -> None:
         self._surface.blit(source._surface, coords)
 
-    def set_at(self: "Image", )
+    def set_at(self: "Image", coords: tuple[int, int], color: Color) -> None:
+        self._surface.set_at(coords, color)

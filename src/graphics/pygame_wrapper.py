@@ -9,9 +9,9 @@ from src.graphics.image import Image
 Color = tuple[int, int, int]
 
 
-class GraphicsBackend:
+class PygameWrapper:
     def __init__(
-        self: "GraphicsBackend",
+        self: "PygameWrapper",
         width: int,
         height: int,
         title: str
@@ -20,48 +20,47 @@ class GraphicsBackend:
         self._screen = pygame.display.set_mode((width, height))
         pygame.display.set_caption(title)
     
-    def new_image(self: "GraphicsBackend", width: int, height: int) -> Image:
+    def new_image(self: "PygameWrapper", width: int, height: int) -> Image:
         return Image(pygame.Surface((width, height)))
     
-    def load_image(self: "GraphicsBackend", path: str | Path) -> Image:
+    def load_image(self: "PygameWrapper", path: str | Path) -> Image:
         return Image(pygame.image.load(str(path)))
 
-    def clear(self: "GraphicsBackend", image: Image, color: Color) -> None:
-        image._surface.fill(color)
+    def clear(self: "PygameWrapper", image: Image, color: Color) -> None:
+        image.fill(color)
 
-    def clear_window(self: "GraphicsBackend", color: Color) -> None:
+    def clear_window(self: "PygameWrapper", color: Color) -> None:
         self._screen.fill(color)
     
     def put_pixel(
-        self: "GraphicsBackend",
+        self: "PygameWrapper",
         image: Image,
         x: int,
         y: int,
         color: Color,
     ) -> None:
         if 0 <= x < image.width and 0 <= y < image.height:
-            image._surface.set_at((x, y), color)
+            image.set_at((x, y), color)
 
-    def get_pixel(self: "GraphicsBackend", image: Image, x: int, y: int) -> Color:
-        pixel = image._surface.get_at((x, y))
-        return pixel.r, pixel.g, pixel.b
-    
+    def get_pixel(self: "PygameWrapper", image: Image, x: int, y: int) -> Color:
+        return image.get_at(x, y)
+
     def put_image(
-        self: "GraphicsBackend",
+        self: "PygameWrapper",
         target: Image,
         source: Image,
         x: int,
         y: int,
     ) -> None:
-        target._surface.blit(source._surface, (x, y))
+        target.blit(source, (x, y))
 
-    def put_image_to_window(self: "GraphicsBackend", image: Image, x: int, y: int) -> None:
+    def put_image_to_window(self: "PygameWrapper", image: Image, x: int, y: int) -> None:
         self._screen.blit(image._surface, (x, y))
 
-    def present(self: "GraphicsBackend") -> None:
+    def present(self: "PygameWrapper") -> None:
         pygame.display.flip()
 
-    def poll_events(self: "GraphicsBackend") -> list[GraphicsEvent]:
+    def poll_events(self: "PygameWrapper") -> list[GraphicsEvent]:
         events: list[GraphicsEvent] = []
 
         for event in pygame.event.get():
@@ -71,11 +70,56 @@ class GraphicsBackend:
 
         return events
     
-    def quit(self: "GraphicsBackend") -> None:
+    def draw_line(
+        self: "PygameWrapper",
+        image: Image,
+        x0: int,
+        y0: int,
+        x1: int,
+        y1: int,
+        color: Color,
+    ) -> None:
+        dx = abs(x1 - x0)
+        dy = abs(y1 - y0)
+        sx = 1 if x0 < x1 else -1
+        sy = 1 if y0 < y1 else -1
+        error = dx - dy
+        x = x0
+        y = y0
+
+        while True:
+            self.put_pixel(image, x, y, color)
+
+            if x == x1 and y == y1:
+                break
+
+            double_error = 2 * error
+            if double_error > -dy:
+                error -= dy
+                x += sx
+
+            if double_error < dx:
+                error += dx
+                y += sy
+
+    def draw_rect(
+        self: "PygameWrapper",
+        image: Image,
+        x: int,
+        y: int,
+        width: int,
+        height: int,
+        color: Color,
+    ) -> None:
+        for current_y in range(y, y + height):
+            for current_x in range(x, x + width):
+                self.put_pixel(image, current_x, current_y, color)
+
+    def quit(self: "PygameWrapper") -> None:
         pygame.quit()
 
     def _convert_event(
-        self: "GraphicsBackend",
+        self: "PygameWrapper",
         event: pygame.event.Event
     ) -> GraphicsEvent | None:
         if event.type == pygame.QUIT:
@@ -115,7 +159,7 @@ class GraphicsBackend:
         
         return None
         
-    def _convert_key(self: "GraphicsBackend", key: int) -> Key:
+    def _convert_key(self: "PygameWrapper", key: int) -> Key:
         key_map = {
             pygame.K_UP: Key.UP,
             pygame.K_DOWN: Key.DOWN,

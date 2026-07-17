@@ -35,15 +35,3 @@ def draw_line(
             y += sy
 
 
-def draw_rect(
-    graphics: GraphicsBackend,
-    image: Image,
-    x: int,
-    y: int,
-    width: int,
-    height: int,
-    color: Color,
-) -> None:
-    for current_y in range(y, y + height):
-        for current_x in range(x, x + width):
-            graphics.put_pixel(image, current_x, current_y, color)

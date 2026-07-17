@@ -1,7 +1,7 @@
 import pygame
 
 from .models import Config
-from .graphics import Display
+from .graphics import PygameWrapper
 from .screens import Screen, MainMenuScreen
 from .models import AppState, ScreenType
 from .factories import GameStateFactory
@@ -16,7 +16,7 @@ class Application:
             config=config,
         )
 
-        self._display = Display(
+        self._display = PygameWrapper(
             width=config.window_width,
             height=config.window_height,
             title="Pac-Man",

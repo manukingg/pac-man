@@ -1,4 +1,4 @@
-from .pygame_wrapper import Display
+from .pygame_wrapper import PygameWrapper
 
 
-__all__ = (Display)
+__all__ = (PygameWrapper)

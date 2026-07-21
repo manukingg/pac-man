@@ -1,11 +1,17 @@
-from ..graphics import Display
-from ..models import AppState
-
 from .screen import Screen
+from ..models.menu_screen import MenuScreenType
+
+from ..graphics import PygameWrapper
+from ..graphics.pygame_wrapper import Color
+from ..graphics.image import Image
+from ..graphics.events import EventType
+from ..models import AppState
 
 
 class MainMenuScreen(Screen):
     """Main application menu."""
+    def __init__(self):
+        self.menu_screen = MenuScreenType.MAIN_MENU
 
     def handle_event(
         self: "MainMenuScreen",
@@ -23,19 +29,15 @@ class MainMenuScreen(Screen):
 
     def render(
         self: "MainMenuScreen",
-        display: Display,
+        image: Image,
+        display: PygameWrapper,
         state: AppState,
     ) -> None:
-        display.clear(0x000000)
-        display.draw_text(
-            x=300,
-            y=150,
+        display.clear(image, (0, 0, 0))
+        display.write_text(
             text="PAC-MAN",
-            color=0xFFFF00,
-        )
-        display.draw_text(
-            x=300,
-            y=250,
-            text="Start Game",
-            color=0xFFFFFF,
+            image=image,
+            font_size=20,
+            align=("center", "center"),
+            color=(255, 255, 0),
         )

@@ -25,10 +25,11 @@ class GameState:
         """Return whether ghosts are currently edible."""
         return self.power_mode_remaining > 0.0
 
+
 @dataclass
 class AppState:
     """Global application state."""
     current_screen: ScreenType
     config: Config
-    game_state: GameState | None = None 
+    game_state: GameState | None = None
     running: bool = True

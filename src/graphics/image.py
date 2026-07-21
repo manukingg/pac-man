@@ -20,7 +20,7 @@ class Image:
     @property
     def size(self: "Image") -> tuple[int, int]:
         return self._surface.get_size()
-    
+
     def fill(self: "Image", color: Color) -> None:
         self._surface.fill(color)
 

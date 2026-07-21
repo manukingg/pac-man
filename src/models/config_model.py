@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict
-    
+
+
 DEFAULT_LEVELS = [
     {"level_number": 1, "width": "15", "height": "15"},
     {"level_number": 2, "width": "20", "height": "18"},
@@ -36,7 +37,7 @@ class Config(BaseModel):
     points_per_pacgum: int = Field(default=10, ge=1, le=1000)
     points_per_super_pacgum: int = Field(default=50, ge=10, le=3000)
     points_per_ghost: int = Field(default=200, ge=15, le=5000)
-    window_width: int = 800
-    window_height: int = 600
+    window_width: int = 1800
+    window_height: int = 1200
     seed: str = "42"
     level_max_time: int = Field(default=90, ge=90, le=500)

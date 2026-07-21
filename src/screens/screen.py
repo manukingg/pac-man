@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 
-from ..graphics import Display
+from ..graphics import PygameWrapper
+from ..graphics.image import Image
 from ..models import AppState
+from ..graphics.events import EventType
 
 
 class Screen(ABC):
@@ -10,7 +12,7 @@ class Screen(ABC):
     @abstractmethod
     def handle_event(
         self: "Screen",
-        event: object,
+        event: EventType,
         state: AppState,
     ) -> None:
         """Handle an input event."""
@@ -26,7 +28,8 @@ class Screen(ABC):
     @abstractmethod
     def render(
         self: "Screen",
-        display: Display,
-        state: AppState,
+        display: PygameWrapper,
+        image: Image,
+        state: AppState
     ) -> None:
         """Render the screen."""

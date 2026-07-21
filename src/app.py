@@ -6,6 +6,8 @@ from .screens import Screen, MainMenuScreen
 from .models import AppState, ScreenType
 from .factories import GameStateFactory
 
+from .graphics.events import EventType, GraphicsEvent
+
 
 class Application:
     """Main Pac-Man application."""
@@ -25,31 +27,39 @@ class Application:
         self._screens: dict[ScreenType, Screen] = {
             ScreenType.MAIN_MENU: MainMenuScreen(),
         }
+        self.width = config.window_width
+        self.height = config.window_height
 
         self._game_state_factory = GameStateFactory(config)
 
         self._clock = pygame.time.Clock()
 
+    def _handle_action(self: "Application") -> None:
+        pass
+
     def run(self: "Application") -> None:
         """Run the application loop."""
-
         try:
+            frame = self._display.new_image(self.width, self.height)
+
             while self._state.running:
                 delta_time = self._clock.tick(60) / 1000.0
 
                 screen = self._screens[self._state.current_screen]
 
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
+                for event in self._display.poll_events():
+                    if event.type == EventType.QUIT:
                         self._state.running = False
                         continue
-
-                    screen.handle_event(event, self._state)
-
-                screen.update(delta_time, self._state)
-
-                self._display.clear(0x000000)
-                screen.render(self._display, self._state)
+                    action = screen.handle_event(event, self._state)
+                    self._handle_action()
+                action = screen.update(delta_time, self._state)
+                self._handle_action()
+                self._display.clear(frame, (0, 0, 0))
+                screen = self._screens[self._state.current_screen]
+                screen.render(display=self._display, image=frame, state=self._state)
+                self._display.put_image_to_window(frame, 0, 0)
                 self._display.present()
+
         finally:
-            self._display.close()
+            self._display.quit()

@@ -2,9 +2,7 @@ from .screen import Screen
 from ..models.menu_screen import MenuScreenType
 
 from ..graphics import PygameWrapper
-from ..graphics.pygame_wrapper import Color
 from ..graphics.image import Image
-from ..graphics.events import EventType
 from ..models import AppState
 
 
@@ -35,9 +33,9 @@ class MainMenuScreen(Screen):
     ) -> None:
         display.clear(image, (0, 0, 0))
         display.write_text(
-            text="PAC-MAN",
+            text="good,",
             image=image,
-            font_size=20,
-            align=("center", "center"),
+            font_size=14,
+            align=("center", 0.1),
             color=(255, 255, 0),
         )

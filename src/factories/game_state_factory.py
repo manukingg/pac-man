@@ -34,8 +34,9 @@ class GameStateFactory:
             maze=maze,
             ghosts=ghosts,
             player=player,
+            score=0,
             lives=self.__config.lives,
-            level=level.number,
+            level=level.level_number,
             remaining_time=float(self.__config.level_max_time),
         )
 

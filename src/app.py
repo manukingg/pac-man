@@ -2,8 +2,8 @@ import pygame
 
 from .models import Config
 from .graphics import PygameWrapper
-from .screens import Screen, MainMenuScreen
-from .models import AppState, ScreenType
+from .screens import Screen, MainMenuScreen, GameScreen
+from .models import AppState, ScreenType, Level
 from .factories import GameStateFactory
 
 from .graphics.events import EventType, GraphicsEvent
@@ -26,6 +26,7 @@ class Application:
 
         self._screens: dict[ScreenType, Screen] = {
             ScreenType.MAIN_MENU: MainMenuScreen(),
+            ScreenType.GAME: GameScreen()
         }
         self.width = config.window_width
         self.height = config.window_height
@@ -41,7 +42,6 @@ class Application:
         """Run the application loop."""
         try:
             frame = self._display.new_image(self.width, self.height)
-
             while self._state.running:
                 delta_time = self._clock.tick(60) / 1000.0
 

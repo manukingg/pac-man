@@ -90,29 +90,168 @@ class PygameWrapper:
         x1: int,
         y1: int,
         color: Color,
+        thickness: int = 1,
+        rounded: bool = False,
     ) -> None:
+        """Draw a line with optional thickness and rounded ends."""
+
+        if thickness <= 0:
+            raise ValueError("Line thickness must be positive")
+
+        if thickness % 2 == 0:
+            raise ValueError("Line thickness must be an odd number")
+
+        if thickness == 1:
+            self._draw_single_line(
+                image=image,
+                x0=x0,
+                y0=y0,
+                x1=x1,
+                y1=y1,
+                color=color,
+            )
+            return
+
+        radius = thickness // 2
+
+        if y0 == y1:
+            for offset in range(-radius, radius + 1):
+                self._draw_single_line(
+                    image=image,
+                    x0=x0,
+                    y0=y0 + offset,
+                    x1=x1,
+                    y1=y1 + offset,
+                    color=color,
+                )
+
+        elif x0 == x1:
+            for offset in range(-radius, radius + 1):
+                self._draw_single_line(
+                    image=image,
+                    x0=x0 + offset,
+                    y0=y0,
+                    x1=x1 + offset,
+                    y1=y1,
+                    color=color,
+                )
+
+        else:
+            for x, y in self._get_line_points(
+                x0=x0,
+                y0=y0,
+                x1=x1,
+                y1=y1,
+            ):
+                self._draw_filled_circle(
+                    image=image,
+                    center_x=x,
+                    center_y=y,
+                    radius=radius,
+                    color=color,
+                )
+
+        if rounded:
+            self._draw_filled_circle(
+                image=image,
+                center_x=x0,
+                center_y=y0,
+                radius=radius,
+                color=color,
+            )
+
+            self._draw_filled_circle(
+                image=image,
+                center_x=x1,
+                center_y=y1,
+                radius=radius,
+                color=color,
+            )
+
+    def _draw_single_line(
+        self: "PygameWrapper",
+        image: Image,
+        x0: int,
+        y0: int,
+        x1: int,
+        y1: int,
+        color: Color,
+    ) -> None:
+        """Draw a one-pixel Bresenham line."""
+
+        for x, y in self._get_line_points(
+            x0=x0,
+            y0=y0,
+            x1=x1,
+            y1=y1,
+        ):
+            self.put_pixel(
+                image=image,
+                x=x,
+                y=y,
+                color=color,
+            )
+
+    def _get_line_points(
+        self: "PygameWrapper",
+        x0: int,
+        y0: int,
+        x1: int,
+        y1: int,
+    ):
+        """Yield every pixel belonging to a line."""
+
         dx = abs(x1 - x0)
         dy = abs(y1 - y0)
-        sx = 1 if x0 < x1 else -1
-        sy = 1 if y0 < y1 else -1
+
+        step_x = 1 if x0 < x1 else -1
+        step_y = 1 if y0 < y1 else -1
+
         error = dx - dy
+
         x = x0
         y = y0
 
         while True:
-            self.put_pixel(image, x, y, color)
+            yield x, y
 
             if x == x1 and y == y1:
                 break
 
-            double_error = 2 * error
+            double_error = error * 2
+
             if double_error > -dy:
                 error -= dy
-                x += sx
+                x += step_x
 
             if double_error < dx:
                 error += dx
-                y += sy
+                y += step_y
+
+    def _draw_filled_circle(
+        self: "PygameWrapper",
+        image: Image,
+        center_x: int,
+        center_y: int,
+        radius: int,
+        color: Color,
+    ) -> None:
+        """Draw a filled circle."""
+
+        radius_squared = radius * radius
+
+        for offset_y in range(-radius, radius + 1):
+            remaining = radius_squared - offset_y * offset_y
+            half_width = int(remaining ** 0.5)
+
+            self._draw_single_line(
+                image=image,
+                x0=center_x - half_width,
+                y0=center_y + offset_y,
+                x1=center_x + half_width,
+                y1=center_y + offset_y,
+                color=color,
+            )
 
     def draw_rect(
         self: "PygameWrapper",

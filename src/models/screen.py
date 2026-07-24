@@ -5,6 +5,7 @@ class ScreenType(Enum):
     """Available application screens."""
 
     MAIN_MENU = auto()
+    MENU_SETTINGS = auto()
     GAME = auto()
     PAUSE = auto()
     HIGHSCORES = auto()

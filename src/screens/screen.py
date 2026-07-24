@@ -14,7 +14,7 @@ class Screen(ABC):
         self: "Screen",
         event: EventType,
         state: AppState,
-    ) -> None:
+    ) -> str | None:
         """Handle an input event."""
 
     @abstractmethod
@@ -22,7 +22,7 @@ class Screen(ABC):
         self: "Screen",
         delta_time: float,
         state: AppState,
-    ) -> None:
+    ) -> str | None:
         """Update screen logic."""
 
     @abstractmethod

@@ -6,7 +6,7 @@ from .screens import Screen, MainMenuScreen
 from .models import AppState, ScreenType
 from .factories import GameStateFactory
 
-from .graphics.events import EventType, GraphicsEvent
+from .graphics.events import EventType
 
 
 class Application:
@@ -57,9 +57,15 @@ class Application:
                 self._handle_action()
                 self._display.clear(frame, (0, 0, 0))
                 screen = self._screens[self._state.current_screen]
-                screen.render(display=self._display, image=frame, state=self._state)
+                screen.render(
+                    display=self._display,
+                    image=frame,
+                    state=self._state
+                )
                 self._display.put_image_to_window(frame, 0, 0)
                 self._display.present()
 
+        except Exception as e:
+            print(e)
         finally:
             self._display.quit()

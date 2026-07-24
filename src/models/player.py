@@ -19,28 +19,28 @@ class PlayerModel:
     invincible: bool = False
     speed_multiplier: float = 1.0
 
-    def request_move(self:"PlayerModel", direction: Direction) -> None:
+    def request_move(self: "PlayerModel", direction: Direction) -> None:
         """Remember the direction requested by the player."""
 
         self.requested_direction = direction
 
-    def move_to(self:"PlayerModel", position: GridPosition) -> None:
+    def move_to(self: "PlayerModel", position: GridPosition) -> None:
         """Move the player to a validated maze position."""
 
         self.position = position
 
-    def change_direction(self:"PlayerModel", direction: Direction) -> None:
+    def change_direction(self: "PlayerModel", direction: Direction) -> None:
         """Change the current movement direction."""
 
         self.direction = direction
 
-    def die(self:"PlayerModel") -> None:
+    def die(self: "PlayerModel") -> None:
         """Mark the player as dead unless invincibility is active."""
 
         if not self.invincible:
             self.alive = False
 
-    def respawn(self:"PlayerModel") -> None:
+    def respawn(self: "PlayerModel") -> None:
         """Respawn the player at the initial maze position."""
 
         self.position = self.spawn_position

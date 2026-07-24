@@ -9,7 +9,6 @@ if __name__ == "__main__":
             config = parser.parse()
             app = Application(config)
             app.run()
-            print(config)
         except Exception as e:
             print(e)
     else:

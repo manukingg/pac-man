@@ -5,22 +5,22 @@ from ..graphics.helpers import get_aligned_position
 from ..graphics.image import Image
 from ..graphics.events import GraphicsEvent, EventType
 from ..graphics.rect import Rect
-from ..models import AppState, ScreenType
-from ..models.button import MenuButton
+from ..models import AppState
+from ..ui.menu_button import MenuButton
 from ..graphics.image import Color
 from .resolutions import settings_resolutions, resolutions
 
 
-class MainMenuScreen(Screen):
+class SettingsMenuScreen(Screen):
     """Main application menu."""
-    def __init__(self: "MainMenuScreen") -> None:
+    def __init__(self: "SettingsMenuScreen") -> None:
         self._buttons: list[MenuButton] = []
         self._hovered_index: int | None = None
         self._cache: dict[tuple[str, int, Color], Image] = {}
         self._prepared_cache_key: tuple[int, int] | None = None
 
     def handle_event(
-        self: "MainMenuScreen",
+        self: "SettingsMenuScreen",
         event: GraphicsEvent,
         state: AppState,
     ) -> str | None:
@@ -35,28 +35,28 @@ class MainMenuScreen(Screen):
         return None
 
     def update(
-        self: "MainMenuScreen",
+        self: "SettingsMenuScreen",
         delta_time: float,
         state: AppState,
     ) -> str | None:
         return None
 
     def render(
-        self: "MainMenuScreen",
+        self: "SettingsMenuScreen",
         image: Image,
         display: PygameWrapper,
         state: AppState,
     ) -> None:
-        if state.current_screen == ScreenType.MAIN_MENU:
-            self._render_menu_screen(image, display, state)
+        self._render_menu_settings_screen(image, display, state)
 
     def _prepare_text_cache(
-        self: "MainMenuScreen",
-        name_font: int,
-        buttons_font: int,
+        self: "SettingsMenuScreen",
+        settings_title_font: int,
+        settings_font: int,
+        settings_dropout_font: int,
         display: PygameWrapper,
     ) -> None:
-        cache_key = (name_font, buttons_font)
+        cache_key = (settings_title_font, settings_font)
 
         if self._prepared_cache_key == cache_key:
             return
@@ -66,71 +66,73 @@ class MainMenuScreen(Screen):
         hover_color = (255, 255, 255)
 
         self._get_text_image(
-            text="PAC-MAN",
-            font_size=name_font,
+            text="Settings",
+            font_size=settings_title_font,
             color=title_color,
             display=display
         )
 
-        for text in ("Play", "Leaderboard", "Settings", "Quit"):
+        for text in ("Resolution", "Cheat-mode"):
             self._get_text_image(
                 text=text,
-                font_size=buttons_font,
+                font_size=settings_font,
                 color=default_color,
                 display=display,
             )
             self._get_text_image(
                 text=text,
-                font_size=buttons_font,
+                font_size=settings_font,
                 color=hover_color,
                 display=display,
             )
 
         self._get_text_image(
             text=">",
-            font_size=buttons_font,
+            font_size=settings_font,
             color=hover_color,
             display=display,
         )
         self._get_text_image(
             text="<",
-            font_size=buttons_font,
+            font_size=settings_font,
             color=hover_color,
             display=display
         )
 
         self._prepared_cache_key = cache_key
 
-    def _render_menu_screen(
-        self: "MainMenuScreen",
+    def _render_menu_settings_screen(
+        self: "SettingsMenuScreen",
         image: Image,
         display: PygameWrapper,
         state: AppState,
     ) -> None:
         resolution_key = settings_resolutions.get((image.width, image.height))
         layout = resolutions.get(resolution_key)
-        name_font = layout["name_font"]
-        buttons_font = layout["buttons_font"]
+        settings_title_font = layout["settings_title_font"]
+        settings_font = layout["settings_font"]
+        settings_dropout_font = layout["settings_dropout_font"]
         name_top_gap = layout["name_top_gap"]
         next_button_start = layout["next_button_start"]
         gap_between_buttons = layout["gap_between_buttons"]
 
         self._prepare_text_cache(
-            name_font=name_font,
-            buttons_font=buttons_font,
-            display=display
+            settings_title_font=settings_title_font,
+            settings_font=settings_font,
+            settings_dropout_font=settings_dropout_font,
+            display=display,
         )
 
         title_image = self._get_text_image(
-            text="PAC-MAN",
-            font_size=name_font,
-            color=(255, 255, 0),
+            text="Settings",
+            font_size=settings_title_font,
+            color=(232, 232, 232),
             display=display,
         )
         title_x, title_y = get_aligned_position(
             align=("center", name_top_gap),
-            text="PAC-MAN",
-            font_size=name_font,
+            text="Settings",
+            font_size=settings_title_font,
             image=image,
         )
         display.put_image(
@@ -141,7 +143,7 @@ class MainMenuScreen(Screen):
         )
 
         self._fill_menu_buttons(
-            font_size=buttons_font,
+            font_size=settings_font,
             image=image,
             display=display,
             gap_between_buttons=gap_between_buttons,
@@ -149,7 +151,7 @@ class MainMenuScreen(Screen):
         )
 
     def _handle_mouse_motion(
-        self: "MainMenuScreen",
+        self: "SettingsMenuScreen",
         mouse_pos: tuple[int, int] | None,
     ) -> None:
         if mouse_pos is None:
@@ -164,7 +166,7 @@ class MainMenuScreen(Screen):
                 return
 
     def _handle_mouse_click(
-        self: "MainMenuScreen",
+        self: "SettingsMenuScreen",
         mouse_pos: tuple[int, int],
     ) -> str | None:
         if mouse_pos is None:
@@ -177,7 +179,7 @@ class MainMenuScreen(Screen):
         return None
 
     def _fill_menu_buttons(
-        self: "MainMenuScreen",
+        self: "SettingsMenuScreen",
         font_size: int,
         image: Image,
         display: PygameWrapper,
@@ -187,27 +189,25 @@ class MainMenuScreen(Screen):
         recreate = len(self._buttons) == 0
 
         button_specs = (
-            ("Play", "start_game"),
-            ("Leaderboard", "open_leaderboard"),
-            ("Settings", "open_settings"),
-            ("Quit", "quit"),
+            ("Resolution", "droput_resolutions"),
+            ("Cheat-Mode", "dropout_cheatmodes"),
         )
 
         for index, (text, action) in enumerate(button_specs):
-            self._create_button(text=text,
-                                action=action,
-                                align=("center", next_button_start +
-                                       index * gap_between_buttons),
-                                font_size=font_size,
-                                image=image,
-                                default_color=(94, 94, 92),
-                                hover_color=(255, 255, 255),
-                                display=display,
-                                recreate=recreate
-                                )
+            self._create_dropout_button(text=text,
+                                        action=action,
+                                        align=("center", next_button_start +
+                                               index * gap_between_buttons),
+                                        font_size=font_size,
+                                        image=image,
+                                        default_color=(94, 94, 92),
+                                        hover_color=(255, 255, 255),
+                                        display=display,
+                                        recreate=recreate
+                                        )
 
-    def _create_button(
-        self: "MainMenuScreen",
+    def _create_dropout_button(
+        self: "SettingsMenuScreen",
         text: str,
         action: str,
         align: tuple[int | str | float, int | str | float],
@@ -287,7 +287,7 @@ class MainMenuScreen(Screen):
             )
 
     def _draw_hover_arrows(
-        self: "MainMenuScreen",
+        self: "SettingsMenuScreen",
         button_rect: Rect,
         font_size: int,
         color: Color,
@@ -331,7 +331,7 @@ class MainMenuScreen(Screen):
         )
 
     def _get_text_image(
-        self: "MainMenuScreen",
+        self: "SettingsMenuScreen",
         text: str,
         font_size: int,
         color: Color,

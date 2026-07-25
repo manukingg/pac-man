@@ -1,5 +1,5 @@
 from .screen import Screen
-from .main_menu import MainMenuScreen
+from .main_menu_screen import MainMenuScreen
 from .game_screen import GameScreen
 
 

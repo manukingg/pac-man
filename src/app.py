@@ -2,6 +2,10 @@ import pygame
 
 from .models import Config
 from .graphics import PygameWrapper
+from .screens import Screen
+from .screens.main_menu_screen import MainMenuScreen
+from .screens.settings_screen import SettingsMenuScreen
+from .models import AppState, ScreenType
 from .screens import Screen, MainMenuScreen, GameScreen
 from .models import AppState, ScreenType, Level
 from .factories import GameStateFactory
@@ -26,6 +30,7 @@ class Application:
 
         self._screens: dict[ScreenType, Screen] = {
             ScreenType.MAIN_MENU: MainMenuScreen(),
+            ScreenType.MENU_SETTINGS: SettingsMenuScreen(),
             ScreenType.GAME: GameScreen()
         }
         self.width = config.window_width
@@ -35,8 +40,15 @@ class Application:
 
         self._clock = pygame.time.Clock()
 
-    def _handle_action(self: "Application") -> None:
-        pass
+    def _handle_action(self: "Application", action: str | None) -> None:
+        if action is None:
+            return
+
+        if action == "quit":
+            self._state.running = False
+
+        if action == "open_settings":
+            self._state.current_screen = ScreenType.MENU_SETTINGS
 
     def run(self: "Application") -> None:
         """Run the application loop."""
@@ -51,12 +63,17 @@ class Application:
                     if event.type == EventType.QUIT:
                         self._state.running = False
                         continue
+
                     action = screen.handle_event(event, self._state)
-                    self._handle_action()
-                action = screen.update(delta_time, self._state)
-                self._handle_action()
-                self._display.clear(frame, (0, 0, 0))
+                    self._handle_action(action)
+
                 screen = self._screens[self._state.current_screen]
+
+                action = screen.update(delta_time, self._state)
+                self._handle_action(action)
+
+                self._display.clear(frame, (0, 0, 0))
+
                 screen.render(
                     display=self._display,
                     image=frame,
@@ -67,5 +84,6 @@ class Application:
 
         except Exception as e:
             print(e)
+
         finally:
             self._display.quit()

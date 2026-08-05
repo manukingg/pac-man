@@ -4,7 +4,6 @@ from .models import Config
 from .graphics import PygameWrapper
 from .screens import Screen
 from .screens.main_menu_screen import MainMenuScreen
-from .screens.settings_screen import SettingsMenuScreen
 from .models import AppState, ScreenType
 from .screens import Screen, MainMenuScreen, GameScreen
 from .models import AppState, ScreenType, Level
@@ -30,7 +29,6 @@ class Application:
 
         self._screens: dict[ScreenType, Screen] = {
             ScreenType.MAIN_MENU: MainMenuScreen(),
-            ScreenType.MENU_SETTINGS: SettingsMenuScreen(),
             ScreenType.GAME: GameScreen()
         }
         self.width = config.window_width

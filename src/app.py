@@ -3,9 +3,8 @@ import pygame
 from .models import Config
 from .graphics import PygameWrapper
 from .screens import Screen
-from .screens.main_menu_screen import MainMenuScreen
 from .models import AppState, ScreenType
-from .screens import Screen, MainMenuScreen, GameScreen
+from .screens import Screen, MainMenuScreen, GameScreen, InstructionsScreen
 from .models import AppState, ScreenType, Level
 from .factories import GameStateFactory
 
@@ -29,6 +28,7 @@ class Application:
 
         self._screens: dict[ScreenType, Screen] = {
             ScreenType.MAIN_MENU: MainMenuScreen(),
+            ScreenType.INSTRUCTIONS: InstructionsScreen(),
             ScreenType.GAME: GameScreen()
         }
         self.width = config.window_width
@@ -53,6 +53,7 @@ class Application:
             return
 
         if action.startswith("set_fullscreen:"):
+            # breakpoint()
             _, value = action.split(":", 1)
 
             enabled = value == "on"

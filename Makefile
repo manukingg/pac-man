@@ -4,7 +4,6 @@ UV := uv
 ENTRYPOINT := pac-man.py
 CONFIG ?= config.json
 MAZE_WHEEL := mazegenerator-2.1.0-py3-none-any.whl
-BATYA = aaa
 
 .PHONY: all install run debug clean lint lint-strict test format help
 

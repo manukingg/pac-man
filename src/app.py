@@ -38,15 +38,28 @@ class Application:
 
         self._clock = pygame.time.Clock()
 
+        self._frame_needs_rebuild = False
+
     def _handle_action(self: "Application", action: str | None) -> None:
         if action is None:
             return
 
         if action == "quit":
             self._state.running = False
+            return
 
         if action == "open_settings":
             self._state.current_screen = ScreenType.MENU_SETTINGS
+            return
+
+        if action.startswith("set_fullscreen:"):
+            _, value = action.split(":", 1)
+
+            enabled = value == "on"
+
+            self.width, self.height = self._display.set_fullscreen(enabled)
+            self._frame_needs_rebuild = True
+            return
 
     def run(self: "Application") -> None:
         """Run the application loop."""
@@ -69,6 +82,10 @@ class Application:
 
                 action = screen.update(delta_time, self._state)
                 self._handle_action(action)
+
+                if self._frame_needs_rebuild:
+                    frame = self._display.new_image(self.width, self.height)
+                    self._frame_needs_rebuild = False
 
                 self._display.clear(frame, (0, 0, 0))
 

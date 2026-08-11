@@ -20,6 +20,12 @@ class PygameWrapper:
         title: str
     ) -> None:
         pygame.init()
+
+        self._windowed_width = width
+        self._windowed_height = height
+        self._title= title
+        self._is_fullscreen = False
+
         self._screen = pygame.display.set_mode((width, height))
         pygame.display.set_caption(title)
 
@@ -82,6 +88,35 @@ class PygameWrapper:
                 events.append(converted)
 
         return events
+
+    def set_fullscreen(
+        self: "PygameWrapper",
+        enabled: bool,
+    ) -> tuple[int, int]:
+        if enabled == self._is_fullscreen:
+            return self.get_window_size()
+
+        self._is_fullscreen = enabled
+
+        if enabled:
+            self._screen = pygame.display.set_mode(
+                (0, 0),
+                pygame.FULLSCREEN,
+            )
+        else:
+            self._screen = pygame.display.set_mode(
+                (self._windowed_width, self._windowed_height),
+            )
+
+        pygame.display.set_caption(self._title)
+
+        return self.get_window_size()
+
+    def get_window_size(self: "PygameWrapper") -> tuple[int, int]:
+        return self._screen.get_size()
+
+    def is_fullscreen(self: "PygameWrapper") -> bool:
+        return self._is_fullscreen
 
     def draw_line(
         self: "PygameWrapper",

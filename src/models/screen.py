@@ -8,7 +8,7 @@ class ScreenType(Enum):
     MENU_SETTINGS = auto()
     GAME = auto()
     PAUSE = auto()
-    HIGHSCORES = auto()
+    LEADERBOARD = auto()
     INSTRUCTIONS = auto()
     GAME_OVER = auto()
     VICTORY = auto()

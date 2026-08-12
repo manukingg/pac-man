@@ -17,6 +17,7 @@ from ..graphics import (
 
 class MainMenuScreen(Screen):
     """Main application menu."""
+
     def __init__(self: "MainMenuScreen") -> None:
         self._buttons: list[MenuButton] = []
 
@@ -342,7 +343,8 @@ class MainMenuScreen(Screen):
                 return
 
             if dropdown.state == DropdownButtonState.OPENED:
-                intersaction_rect = self._get_dropdown_intersation_rect(dropdown)
+                intersaction_rect = self._get_dropdown_intersation_rect(
+                    dropdown)
 
                 if intersaction_rect.contains(mouse_pos):
                     for option_index, option_rect in enumerate(dropdown.option_rects):

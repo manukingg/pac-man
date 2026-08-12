@@ -10,7 +10,7 @@ class Rect:
 
     def contains(self: "Rect", pos: tuple[int, int]) -> bool:
         px, py = pos
-
+        print(pos)
         return (
             self.x <= px <= self.x + self.width
             and self.y <= py <= self.y + self.height

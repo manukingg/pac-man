@@ -6,7 +6,7 @@ resolutions: dict = {
         "name_top_gap": 200,
         "gap_between_buttons": 200,
         "dropdown_font_size": 14,
-        },
+    },
     "1920 x 1200 (16:9)": {"name_font": 32, "buttons_font": 18},
     "1920 x 1080 (16:9)": {
         "name_font": 16,
@@ -16,7 +16,7 @@ resolutions: dict = {
         "gap_between_buttons": 100,
         "dropdown_font_size": 6,
         "dropdown_options_font_size": 4,
-        },
+    },
     "1680 x 1050 (16:9)": {"name_font": 32, "buttons_font": 18},
     "1600 x 1200 (4:3)": {"name_font": 32, "buttons_font": 18},
     "1440 x 900 (16:10)": {"name_font": 32, "buttons_font": 18},

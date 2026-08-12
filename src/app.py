@@ -1,11 +1,8 @@
 import pygame
 
-from .models import Config
 from .graphics import PygameWrapper
-from .screens import Screen
-from .models import AppState, ScreenType
 from .screens import Screen, MainMenuScreen, GameScreen, InstructionsScreen
-from .models import AppState, ScreenType, Level
+from .models import AppState, ScreenType, Level, Config
 from .factories import GameStateFactory
 
 from .graphics.events import EventType
@@ -50,6 +47,10 @@ class Application:
 
         if action == "open_settings":
             self._state.current_screen = ScreenType.MENU_SETTINGS
+            return
+
+        if action == "open_instructions":
+            self._state.current_screen = ScreenType.INSTRUCTIONS
             return
 
         if action.startswith("set_fullscreen:"):

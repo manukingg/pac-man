@@ -18,5 +18,5 @@ __all__ = (
     Wall,
     Level,
     GridPosition,
-    GhostKind
+    GhostKind,
 )

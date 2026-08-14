@@ -1,5 +1,8 @@
 import pygame
 
+from pathlib import Path
+
+from .animation import AnimatedSprite
 from .models import Config
 from .graphics import PygameWrapper
 from .screens import Screen
@@ -18,9 +21,11 @@ class Application:
 
     def __init__(self: "Application", config: Config) -> None:
         self._state = AppState(
-            current_screen=ScreenType.MAIN_MENU,
+            current_screen=ScreenType.GAME,
             config=config,
         )
+
+        assets_path = Path("assets")
 
         self._display = PygameWrapper(
             width=config.window_width,
@@ -28,15 +33,66 @@ class Application:
             title="Pac-Man",
         )
 
+        pacman_animations = {
+            "right": self._display.load_animation(
+                paths=[
+                    assets_path / "pacman-right/1.png",
+                    assets_path / "pacman-right/2.png",
+                    assets_path / "pacman-right/3.png",
+                    assets_path / "pacman-right/2.png",
+                    assets_path / "pacman-right/1.png",
+
+                ],
+                frame_duration=0.08
+            ),
+            "left": self._display.load_animation(
+                paths=[
+                    assets_path / "pacman-left/3.png",
+                    assets_path / "pacman-left/2.png",
+                    assets_path / "pacman-left/1.png",
+                    assets_path / "pacman-left/2.png",
+                    assets_path / "pacman-left/3.png"
+                ],
+                frame_duration=0.08
+            ),
+            "up": self._display.load_animation(
+                paths=[
+                    assets_path / "pacman-up/1.png",
+                    assets_path / "pacman-up/2.png",
+                    assets_path / "pacman-up/3.png",
+                    assets_path / "pacman-up/2.png",
+                    assets_path / "pacman-up/1.png",
+                ],
+                frame_duration=0.08
+            ),
+            "down": self._display.load_animation(
+                paths=[
+                    assets_path / "pacman-down/1.png",
+                    assets_path / "pacman-down/2.png",
+                    assets_path / "pacman-down/3.png",
+                    assets_path / "pacman-down/2.png",
+                    assets_path / "pacman-down/1.png"
+                ],
+                frame_duration=0.08
+            )
+        }
+
+        pacman_sprite = AnimatedSprite(
+            animations=pacman_animations,
+            initial_animation="left"
+        )
+
         self._screens: dict[ScreenType, Screen] = {
             ScreenType.MAIN_MENU: MainMenuScreen(),
             ScreenType.MENU_SETTINGS: SettingsMenuScreen(),
-            ScreenType.GAME: GameScreen()
+            ScreenType.GAME: GameScreen(pacman_sprite=pacman_sprite)
         }
         self.width = config.window_width
         self.height = config.window_height
 
         self._game_state_factory = GameStateFactory(config)
+        level = Level(level_number=1, width=20, height=20)
+        self._state.game_state = self._game_state_factory.create(level=level)
 
         self._clock = pygame.time.Clock()
 

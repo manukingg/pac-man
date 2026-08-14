@@ -2,11 +2,12 @@ from pathlib import Path
 
 import pygame
 
-from src.graphics.events import EventType, GraphicsEvent, Key
-from src.graphics.image import Image
-from src.graphics.font_map import FONT_MAP
+from .events import EventType, GraphicsEvent, Key
+from .image import Image
+from .font_map import FONT_MAP
 from .helpers import get_aligned_position
-from typing import Optional
+from .animation import AnimationClip
+from typing import Optional, Iterable
 
 
 Color = tuple[int, int, int]
@@ -27,13 +28,33 @@ class PygameWrapper:
         return Image(pygame.Surface((width, height)))
 
     def load_image(self: "PygameWrapper", path: str | Path) -> Image:
-        return Image(pygame.image.load(str(path)))
+        surface = pygame.image.load(str(path)).convert_alpha()
+        return Image(surface)
 
     def clear(self: "PygameWrapper", image: Image, color: Color) -> None:
         image.fill(color)
 
     def clear_window(self: "PygameWrapper", color: Color) -> None:
         self._screen.fill(color)
+
+    def load_animation(
+        self: "PygameWrapper",
+        paths: Iterable[str | Path],
+        frame_duration: float,
+        loop: bool = True,
+    ) -> AnimationClip:
+        """Load animation frames from image files."""
+
+        frames = tuple(
+            self.load_image(path)
+            for path in paths
+        )
+
+        return AnimationClip(
+            frames=frames,
+            frame_duration=frame_duration,
+            loop=loop,
+        )
 
     def put_pixel(
         self: "PygameWrapper",
@@ -59,8 +80,28 @@ class PygameWrapper:
         source: Image,
         x: int,
         y: int,
+        scale: tuple[int, int] | None = None,
     ) -> None:
-        target._surface.blit(source._surface, (x, y))
+        if scale is None:
+            target.blit(source, (x, y))
+            return
+
+        width, height = scale
+
+        if width <= 0 or height <= 0:
+            raise ValueError("Scale size must be positive")
+
+        if width == source.width and height == source.height:
+            target.blit(source, (x, y))
+            return
+
+        self.__put_scaled_image(
+            target=target,
+            source=source,
+            x=x,
+            y=y,
+            size=scale
+        )
 
     def put_image_to_window(
         self: "PygameWrapper",
@@ -254,6 +295,30 @@ class PygameWrapper:
                 color=color,
             )
 
+    def __put_scaled_image(
+        self: "PygameWrapper",
+        target: Image,
+        source: Image,
+        x: int,
+        y: int,
+        size: tuple[int, int]
+    ) -> None:
+        """Draw an image using nearest-neighbour scaling."""
+
+        for target_y in range(size[1]):
+            source_y = target_y * source.height // size[1]
+
+            for target_x in range(size[0]):
+                source_x = target_x * source.width // size[0]
+
+                color = source.get_at(source_x, source_y)
+
+                self.put_pixel(
+                    image=target,
+                    x=x + target_x,
+                    y=y + target_y,
+                    color=color,
+                )
     def draw_rect(
         self: "PygameWrapper",
         image: Image,

@@ -1,3 +1,4 @@
+from ..animation import AnimatedSprite
 from ..graphics import Image, PygameWrapper
 from ..graphics.events import GraphicsEvent
 from ..models import AppState, Wall
@@ -8,6 +9,8 @@ from .screen import Screen
 Color = tuple[int, int, int]
 WallSegment = tuple[int, int, int, int]
 
+HUD_HEIGHT = 140
+
 
 class GameScreen(Screen):
     """Render and control the current game session."""
@@ -17,6 +20,10 @@ class GameScreen(Screen):
     _ERROR_COLOR: Color = (255, 64, 64)
     _PADDING = 24
     _ERROR_FONT_SIZE = 2
+
+    def __init__(self: 'GameScreen', pacman_sprite: AnimatedSprite) -> None:
+        self.__pacman_sprite = pacman_sprite
+        self.__maze_image = None
 
     def handle_event(
         self: "GameScreen",
@@ -31,6 +38,7 @@ class GameScreen(Screen):
         state: AppState,
     ) -> None:
         """Update the current game session."""
+        self.__pacman_sprite.update(delta_time)
 
     def render(
         self: "GameScreen",
@@ -64,11 +72,18 @@ class GameScreen(Screen):
                 text="MAZE IS EMPTY",
             )
             return
+        
+        if self.__maze_image is None:
+            self.__maze_image = display.new_image(image.width, image.height)
+            self.__render_maze(display=display, image=self.__maze_image, maze=maze)
+        display.put_image(target=image, source=self.__maze_image, x=0, y=0)
 
-        self.__render_maze(
-            display=display,
-            image=image,
-            maze=maze,
+        display.put_image(
+            target=image,
+            source=self.__pacman_sprite.current_image,
+            x=0,
+            y=0,
+            scale=(48, 48)
         )
 
     def __render_maze(
@@ -101,7 +116,7 @@ class GameScreen(Screen):
         maze_height = row_count * cell_size
 
         offset_x = (image.width - maze_width) // 2
-        offset_y = (image.height - maze_height) // 2
+        offset_y = (image.height - maze_height - HUD_HEIGHT) // 2
 
         segments = self.__collect_wall_segments(
             maze=maze,
@@ -257,7 +272,7 @@ class GameScreen(Screen):
         """Calculate the largest cell size fitting the image."""
 
         available_width = image_width - self._PADDING * 2
-        available_height = image_height - self._PADDING * 2
+        available_height = image_height - self._PADDING * 2 - HUD_HEIGHT
 
         cell_width = available_width // column_count
         cell_height = available_height // row_count

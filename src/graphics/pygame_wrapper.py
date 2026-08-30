@@ -21,11 +21,7 @@ class PygameWrapper:
     ) -> None:
         pygame.init()
 
-        self._windowed_width = width
-        self._windowed_height = height
-        self._title= title
-        self._is_fullscreen = False
-
+        self._title = title
         self._screen = pygame.display.set_mode((width, height))
         pygame.display.set_caption(title)
 
@@ -40,6 +36,14 @@ class PygameWrapper:
 
     def clear_window(self: "PygameWrapper", color: Color) -> None:
         self._screen.fill(color)
+
+    def resize_window(
+        self: "PygameWrapper",
+        width: int,
+        height: int,
+    ) -> None:
+        self._screen = pygame.display.set_mode((width, height))
+        pygame.display.set_caption(self._title)
 
     def put_pixel(
         self: "PygameWrapper",
@@ -111,6 +115,17 @@ class PygameWrapper:
         pygame.display.set_caption(self._title)
 
         return self.get_window_size()
+
+    @staticmethod
+    def get_desktop_size() -> tuple[int, int]:
+        pygame.init()
+
+        desktop_sizes = pygame.display.get_desktop_sizes()
+
+        if not desktop_sizes:
+            return 800, 600
+        
+        return desktop_sizes[0]
 
     def get_window_size(self: "PygameWrapper") -> tuple[int, int]:
         return self._screen.get_size()
@@ -428,3 +443,11 @@ class PygameWrapper:
         }
 
         return key_map.get(key, Key.UNKNOWN)
+
+    def get_desktop_size(self: "PygameWrapper") -> tuple[int, int]:
+        desktop_sizes = pygame.display.get_desktop_sizes()
+
+        if not desktop_sizes:
+            return self._screen.get_size()
+
+        return desktop_sizes[0]

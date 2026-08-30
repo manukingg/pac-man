@@ -1,15 +1,23 @@
 import pygame
+import json
 
 from .models import Config
 from .graphics import PygameWrapper
-from .screens import Screen
-from .screens.main_menu_screen import MainMenuScreen
 from .models import AppState, ScreenType
-from .screens import Screen, MainMenuScreen, GameScreen
-from .models import AppState, ScreenType, Level
+from .screens import (
+    Screen,
+    MainMenuScreen,
+    GameScreen,
+    get_available_resolution_options,
+    get_available_resolution,
+    get_nearest_available_resolution,
+    resolution_to_text,
+    parse_resolution_text,
+)
 from .factories import GameStateFactory
-
 from .graphics.events import EventType
+
+from pathlib import Path
 
 
 class Application:
@@ -27,8 +35,23 @@ class Application:
             title="Pac-Man",
         )
 
+        desktop_width, desktop_height = self._display.get_desktop_size()
+
+        current_resolution = f"{config.window_width}x{config.window_height}"
+
+        resolution_options = get_available_resolution_options(
+            desktop_width=desktop_width,
+            desktop_height=desktop_height,
+        )
+
+        if current_resolution not in resolution_options:
+            resolution_options.insert(0, current_resolution)
+
         self._screens: dict[ScreenType, Screen] = {
-            ScreenType.MAIN_MENU: MainMenuScreen(),
+            ScreenType.MAIN_MENU: MainMenuScreen(
+                resolution_options=resolution_options,
+                current_resolution=current_resolution,
+            ),
             ScreenType.GAME: GameScreen()
         }
         self.width = config.window_width
@@ -52,12 +75,29 @@ class Application:
             self._state.current_screen = ScreenType.MENU_SETTINGS
             return
 
-        if action.startswith("set_fullscreen:"):
+        if action.startswith("set_resolution:"):
             _, value = action.split(":", 1)
 
-            enabled = value == "on"
+            size = self._parse_resolution(value)
+            if size is None:
+                print(f"Invalid resolution: {value}")
+                return
 
-            self.width, self.height = self._display.set_fullscreen(enabled)
+            new_width, new_height = size
+
+            if new_width == self.width and new_height == self.height:
+                return
+
+            self.width = new_width
+            self.height = new_height
+
+            self._state.config.window_width = new_width
+            self._state.config.window_height = new_height
+
+            self._display.resize_window(
+                width=self.width,
+                height=self.height,
+            )
             self._frame_needs_rebuild = True
             return
 
@@ -66,7 +106,7 @@ class Application:
         try:
             frame = self._display.new_image(self.width, self.height)
             while self._state.running:
-                delta_time = self._clock.tick(60) / 1000.0
+                delta_time = 0  # self._clock.tick(60) / 1000.0
 
                 screen = self._screens[self._state.current_screen]
 

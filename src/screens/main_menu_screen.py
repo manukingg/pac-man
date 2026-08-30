@@ -17,25 +17,29 @@ from ..graphics import (
 
 class MainMenuScreen(Screen):
     """Main application menu."""
-    def __init__(self: "MainMenuScreen") -> None:
+    def __init__(
+        self: "MainMenuScreen",
+        resolution_options: list[str],
+        current_resolution: str,
+    ) -> None:
         self._buttons: list[MenuButton] = []
-
+        current_index = self._get_resolution_index(
+            options=resolution_options,
+            current_resolution=current_resolution
+        )
         self._dropdown_buttons: list[DropdownButton] = [
             DropdownButton(
                 label="Resolution",
                 action="set_resolution",
-                options=["800x600", "1024x768", "1280x720"],
+                options=self._get_resolutions(),
                 current_index=0,
                 rect=Rect(0, 0, 0, 0),
             ),
         ]
-        self._fullscreen_enabled = False
-        self._fullscreen_rect = Rect(0, 0, 0, 0)
-
+        
         self._hovered_index: int | None = None
         self._hovered_dropdown_index: int | None = None
         self._hovered_option_index: int | None = None
-        self._fullscreen_hovered = False
 
         self._pressed_target: tuple[str, int, int | None] | None = None
         self._focused_target: tuple[
@@ -146,11 +150,6 @@ class MainMenuScreen(Screen):
                 image=image,
                 display=display
             )
-        self._render_fullscreen_button(
-            font_size=dropdown_font_size,
-            image=image,
-            display=display,
-        )
 
         for index, dropdown in enumerate(self._dropdown_buttons):
             self._render_dropdown_button(
@@ -284,20 +283,6 @@ class MainMenuScreen(Screen):
                     display=display
                 )
 
-        for text in ("Fullscreen ON", "Fullscreen OFF"):
-            self._get_text_image(
-                text=text,
-                font_size=dropdown_font_size,
-                color=default_color,
-                display=display,
-            )
-            self._get_text_image(
-                text=text,
-                font_size=dropdown_font_size,
-                color=hover_color,
-                display=display,
-            )
-
         self._prepared_cache_key = cache_key
 
     def _draw_cached_text_at(
@@ -331,7 +316,6 @@ class MainMenuScreen(Screen):
         self._hovered_index = None
         self._hovered_dropdown_index = None
         self._hovered_option_index = None
-        self._fullscreen_hovered = False
 
         if mouse_pos is None:
             return
@@ -342,10 +326,12 @@ class MainMenuScreen(Screen):
                 return
 
             if dropdown.state == DropdownButtonState.OPENED:
-                intersaction_rect = self._get_dropdown_intersation_rect(dropdown)
+                intersaction_rect = self._get_dropdown_intersation_rect(
+                                                                dropdown)
 
                 if intersaction_rect.contains(mouse_pos):
-                    for option_index, option_rect in enumerate(dropdown.option_rects):
+                    for option_index, option_rect in enumerate(
+                                            dropdown.option_rects):
                         if option_rect.contains(mouse_pos):
                             self._set_focus(
                                 "option",
@@ -355,10 +341,6 @@ class MainMenuScreen(Screen):
                             return
                     self._set_focus("dropdown", dropdown_index, None)
                     return
-
-        if self._fullscreen_rect.contains(mouse_pos):
-            self._set_focus("fullscreen", 0, None)
-            return
 
         for index, button in enumerate(self._buttons):
             if button.rect.contains(mouse_pos):
@@ -371,12 +353,24 @@ class MainMenuScreen(Screen):
     ) -> None:
         self._pressed_target = None
 
+        opened_dropdown = self._get_open_dropdown()
+
+        if opened_dropdown is not None:
+            dropdown_index, dropdown = opened_dropdown
+            interaction_rect = self._get_dropdown_intersation_rect(dropdown)
+
+            if mouse_pos is None or not interaction_rect.contains(mouse_pos):
+                dropdown.state = DropdownButtonState.CLOSED
+                self._set_focus("dropdown", dropdown_index, None)
+                return None
+
         if mouse_pos is None:
             return None
 
         for dropdown_index, dropdown in enumerate(self._dropdown_buttons):
             if dropdown.state == DropdownButtonState.OPENED:
-                for option_index, option_rect in enumerate(dropdown.option_rects):
+                for option_index, option_rect in enumerate(
+                                        dropdown.option_rects):
                     if option_rect.contains(mouse_pos):
                         self._pressed_target = (
                             "option",
@@ -393,13 +387,6 @@ class MainMenuScreen(Screen):
                     None,
                 )
                 return
-        if self._fullscreen_rect.contains(mouse_pos):
-            self._pressed_target = (
-                "fullscreen",
-                0,
-                None,
-            )
-            return
 
         for index, button in enumerate(self._buttons):
             if button.rect.contains(mouse_pos):
@@ -431,9 +418,14 @@ class MainMenuScreen(Screen):
             option_rect = dropdown.option_rects[second_index]
 
             if option_rect.contains(mouse_pos):
+                if second_index == dropdown.current_index:
+                    dropdown.state = DropdownButtonState.CLOSED
+                    self._set_focus("dropdown", first_index, None)
+                    return None
                 dropdown.current_index = second_index
                 dropdown.state = DropdownButtonState.CLOSED
                 self._set_focus("dropdown", first_index, None)
+
                 return f"{dropdown.action}:{dropdown.selected_option}"
 
             return None
@@ -450,17 +442,6 @@ class MainMenuScreen(Screen):
 
             return None
 
-        if target_type == "fullscreen":
-            if self._fullscreen_rect.contains(mouse_pos):
-                self._fullscreen_enabled = not self._fullscreen_enabled
-                self._close_all_dropdowns()
-                self._set_focus("fullscreen", 0, None)
-
-                value = "on" if self._fullscreen_enabled else "off"
-                return f"set_fullscreen:{value}"
-
-            return None
-
         if target_type == "menu":
             button = self._buttons[first_index]
 
@@ -472,29 +453,6 @@ class MainMenuScreen(Screen):
             return None
 
         return None
-
-    def _render_fullscreen_button(
-        self: "MainMenuScreen",
-        font_size: int,
-        image: Image,
-        display: PygameWrapper,
-    ) -> None:
-        default_color = (94, 94, 92)
-        hover_color = (255, 255, 255)
-
-        color = hover_color if self._fullscreen_hovered else default_color
-        text = ("Fullscreen ON" if self._fullscreen_enabled
-                else "Fullscreen OFF")
-
-        self._draw_cached_text_at(
-            text=text,
-            font_size=font_size,
-            color=color,
-            x=self._fullscreen_rect.x,
-            y=self._fullscreen_rect.y,
-            image=image,
-            display=display,
-        )
 
     def _draw_hover_arrows(
         self: "MainMenuScreen",
@@ -595,26 +553,6 @@ class MainMenuScreen(Screen):
             height=max_y - min_y,
         )
 
-    def _render_dropdown_background(
-        self: "MainMenuScreen",
-        button: DropdownButton,
-        image: Image,
-        display: PygameWrapper,
-    ) -> None:
-        background_rect = self._get_dropdown_background_rect(button)
-
-        if background_rect is None:
-            return
-
-        display.draw_rect(
-            image=image,
-            x=background_rect.x,
-            y=background_rect.y,
-            width=background_rect.width,
-            height=background_rect.height,
-            color=(0, 0, 0),
-        )
-
     def _render_dropdown_button(
         self: "MainMenuScreen",
         button: DropdownButton,
@@ -663,11 +601,6 @@ class MainMenuScreen(Screen):
         )
 
         if button.state == DropdownButtonState.OPENED:
-            self._render_dropdown_background(
-                button=button,
-                image=image,
-                display=display,
-            )
             self._render_dropdown_options(
                 button=button,
                 button_index=button_index,
@@ -819,28 +752,6 @@ class MainMenuScreen(Screen):
 
             dropdown.option_rects = option_rects
 
-            fullscreen_row_height = 8 * dropdown_font_size
-            fullscreen_width = max(
-                get_text_width("Fullscreen ON", dropdown_font_size),
-                get_text_width("Fullscreen OFF", dropdown_font_size),
-            )
-            text = ("Fullscreen ON" if self._fullscreen_enabled
-                    else "Fullscreen OFF")
-
-            fullscreen_x, fullscreen_y = get_aligned_position(
-                align=("right", "bottom"),
-                text=text,
-                font_size=dropdown_font_size,
-                image=image
-            )
-
-            self._fullscreen_rect = Rect(
-                x=fullscreen_x,
-                y=fullscreen_y,
-                width=fullscreen_width,
-                height=fullscreen_row_height,
-            )
-
     def _set_focus(
         self: "MainMenuScreen",
         target_type: str,
@@ -852,7 +763,6 @@ class MainMenuScreen(Screen):
         self._hovered_index = None
         self._hovered_dropdown_index = None
         self._hovered_option_index = None
-        self._fullscreen_hovered = False
 
         if target_type == "menu":
             self._hovered_index = first_index
@@ -863,9 +773,6 @@ class MainMenuScreen(Screen):
         elif target_type == "option":
             self._hovered_dropdown_index = first_index
             self._hovered_option_index = second_index
-
-        elif target_type == "fullscreen":
-            self._fullscreen_hovered = True
 
     def _get_open_dropdown_index(self: "MainMenuScreen") -> int | None:
         for index, dropdown in enumerate(self._dropdown_buttons):
@@ -920,18 +827,16 @@ class MainMenuScreen(Screen):
             if second_index is None:
                 return None
 
+            if second_index == dropdown.current_index:
+                dropdown.state = DropdownButtonState.CLOSED
+                self._set_focus("dropdown", first_index, None)
+                return None
+
             dropdown.current_index = second_index
             dropdown.state = DropdownButtonState.CLOSED
             self._set_focus("dropdown", first_index, None)
 
             return f"{dropdown.action}:{dropdown.selected_option}"
-
-        if target_type == "fullscreen":
-            self._fullscreen_enabled = not self._fullscreen_enabled
-            self._close_all_dropdowns()
-
-            value = "on" if self._fullscreen_enabled else "off"
-            return f"set_fullscreen:{value}"
 
         return None
 
@@ -945,8 +850,6 @@ class MainMenuScreen(Screen):
 
         for index in range(len(self._dropdown_buttons)):
             result.append(("dropdown", index, None))
-
-        result.append(("fullscreen", 0, None))
 
         return result
 
@@ -996,7 +899,8 @@ class MainMenuScreen(Screen):
             return self._activate_focused_target()
 
         if key == Key.ESCAPE:
-            self._dropdown_buttons[dropdown_index].state = DropdownButtonState.CLOSED
+            self._dropdown_buttons[dropdown_index].state = (
+                                    DropdownButtonState.CLOSED)
             self._set_focus("dropdown", dropdown_index, None)
             return None
 
@@ -1032,3 +936,29 @@ class MainMenuScreen(Screen):
             return "quit"
 
         return None
+
+    def _get_resolutions(self: "MainMenuScreen") -> list[str]:
+        res = []
+        for resolution in resolutions.keys():
+            res.append(resolution)
+        print(res)
+        return res
+
+    def _get_open_dropdown(
+        self: "MainMenuScreen"
+    ) -> tuple[int, DropdownButton] | None:
+        for index, dropdown in enumerate(self._dropdown_buttons):
+            if dropdown.state == DropdownButtonState.OPENED:
+                return index, dropdown
+
+        return None
+
+    def _get_resolution_index(
+        self: "MainMenuScreen",
+        options: list[str],
+        current_resolution: str,
+    ) -> int:
+        try:
+            return options.index(current_resolution)
+        except ValueError:
+            return 0

@@ -147,7 +147,7 @@ def get_available_resolution(
 
     for width, height in SUPPORTED_WINDOW_RESOLUTIONS:
         if width <= desktop_width and height <= desktop_height:
-            result.append(f"{width}x{height}")
+            result.append((width, height))
 
     if not result:
         result.append((800, 600))
@@ -159,6 +159,10 @@ def get_available_resolution_options(
     desktop_width: int,
     desktop_height: int,
 ) -> list[str]:
+    res = []
+    for width, height in get_available_resolution(desktop_width, desktop_height):
+        res.append(resolution_to_text(width, height))
+    print(res)
     return [
         resolution_to_text(width, height)
         for width, height in get_available_resolution(

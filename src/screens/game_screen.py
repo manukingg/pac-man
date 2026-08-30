@@ -72,10 +72,14 @@ class GameScreen(Screen):
                 text="MAZE IS EMPTY",
             )
             return
-        
+
         if self.__maze_image is None:
             self.__maze_image = display.new_image(image.width, image.height)
-            self.__render_maze(display=display, image=self.__maze_image, maze=maze)
+            self.__render_maze(
+                display=display,
+                image=self.__maze_image,
+                maze=maze
+            )
         display.put_image(target=image, source=self.__maze_image, x=0, y=0)
 
         display.put_image(

@@ -11,6 +11,7 @@ class AnimationClip:
 
     def post_init(self: 'AnimationClip') -> None:
         if not self.frames:
-            raise ValueError("Error: Animation must contain at least one frame")
+            raise ValueError("Error: Animation must "
+                             "contain at least one frame")
         if self.frame_duration == 0:
             raise ValueError("Error: Frame duration must be > 0")

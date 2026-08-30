@@ -157,15 +157,12 @@ class PygameWrapper:
 
         return self.get_window_size()
 
-    @staticmethod
-    def get_desktop_size() -> tuple[int, int]:
-        pygame.init()
-
+    def get_desktop_size(self: "PygameWrapper") -> tuple[int, int]:
         desktop_sizes = pygame.display.get_desktop_sizes()
 
         if not desktop_sizes:
-            return 800, 600
-        
+            return self._screen.get_size()
+
         return desktop_sizes[0]
 
     def get_window_size(self: "PygameWrapper") -> tuple[int, int]:
@@ -369,6 +366,7 @@ class PygameWrapper:
                     y=y + target_y,
                     color=color,
                 )
+
     def draw_rect(
         self: "PygameWrapper",
         image: Image,
@@ -508,11 +506,3 @@ class PygameWrapper:
         }
 
         return key_map.get(key, Key.UNKNOWN)
-
-    def get_desktop_size(self: "PygameWrapper") -> tuple[int, int]:
-        desktop_sizes = pygame.display.get_desktop_sizes()
-
-        if not desktop_sizes:
-            return self._screen.get_size()
-
-        return desktop_sizes[0]

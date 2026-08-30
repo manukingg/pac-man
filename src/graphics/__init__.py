@@ -3,6 +3,7 @@ from .image import Image, Color
 from .rect import Rect
 from .helpers import get_aligned_position, get_text_width
 from .events import EventType, GraphicsEvent, Key
+from .animation import AnimationClip
 
 
 __all__ = (
@@ -15,4 +16,5 @@ __all__ = (
     EventType,
     GraphicsEvent,
     Key,
+    AnimationClip,
 )

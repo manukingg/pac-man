@@ -23,10 +23,10 @@ class MainMenuScreen(Screen):
         current_resolution: str,
     ) -> None:
         self._buttons: list[MenuButton] = []
-        current_index = self._get_resolution_index(
-            options=resolution_options,
-            current_resolution=current_resolution
-        )
+        # current_index = self._get_resolution_index(
+        #     options=resolution_options,
+        #     current_resolution=current_resolution
+        # )
         self._dropdown_buttons: list[DropdownButton] = [
             DropdownButton(
                 label="Resolution",
@@ -36,7 +36,6 @@ class MainMenuScreen(Screen):
                 rect=Rect(0, 0, 0, 0),
             ),
         ]
-        
         self._hovered_index: int | None = None
         self._hovered_dropdown_index: int | None = None
         self._hovered_option_index: int | None = None

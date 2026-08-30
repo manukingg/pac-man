@@ -1,10 +1,8 @@
 import pygame
-import json
 
 from pathlib import Path
 
 from .animation import AnimatedSprite
-from .models import Config
 from .graphics import PygameWrapper
 from .models import AppState, ScreenType
 from .screens import (
@@ -17,10 +15,12 @@ from .screens import (
     resolution_to_text,
     parse_resolution_text,
 )
+from .models import (
+    Config,
+    Level,
+)
 from .factories import GameStateFactory
 from .graphics.events import EventType
-
-from pathlib import Path
 
 
 class Application:
@@ -102,28 +102,13 @@ class Application:
             resolution_options.insert(0, current_resolution)
 
         self._screens: dict[ScreenType, Screen] = {
-            ScreenType.MAIN_MENU: MainMenuScreen(),
-            ScreenType.MENU_SETTINGS: SettingsMenuScreen(),
-            ScreenType.GAME: GameScreen(pacman_sprite=pacman_sprite)
-        desktop_width, desktop_height = self._display.get_desktop_size()
-
-        current_resolution = f"{config.window_width}x{config.window_height}"
-
-        resolution_options = get_available_resolution_options(
-            desktop_width=desktop_width,
-            desktop_height=desktop_height,
-        )
-
-        if current_resolution not in resolution_options:
-            resolution_options.insert(0, current_resolution)
-
-        self._screens: dict[ScreenType, Screen] = {
             ScreenType.MAIN_MENU: MainMenuScreen(
                 resolution_options=resolution_options,
                 current_resolution=current_resolution,
             ),
-            ScreenType.GAME: GameScreen()
+            ScreenType.GAME: GameScreen(pacman_sprite=pacman_sprite)
         }
+
         self.width = config.window_width
         self.height = config.window_height
 

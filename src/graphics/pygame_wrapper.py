@@ -21,6 +21,8 @@ class PygameWrapper:
         title: str
     ) -> None:
         pygame.init()
+
+        self._title = title
         self._screen = pygame.display.set_mode((width, height))
         pygame.display.set_caption(title)
 
@@ -55,6 +57,14 @@ class PygameWrapper:
             frame_duration=frame_duration,
             loop=loop,
         )
+
+    def resize_window(
+        self: "PygameWrapper",
+        width: int,
+        height: int,
+    ) -> None:
+        self._screen = pygame.display.set_mode((width, height))
+        pygame.display.set_caption(self._title)
 
     def put_pixel(
         self: "PygameWrapper",
@@ -123,6 +133,46 @@ class PygameWrapper:
                 events.append(converted)
 
         return events
+
+    def set_fullscreen(
+        self: "PygameWrapper",
+        enabled: bool,
+    ) -> tuple[int, int]:
+        if enabled == self._is_fullscreen:
+            return self.get_window_size()
+
+        self._is_fullscreen = enabled
+
+        if enabled:
+            self._screen = pygame.display.set_mode(
+                (0, 0),
+                pygame.FULLSCREEN,
+            )
+        else:
+            self._screen = pygame.display.set_mode(
+                (self._windowed_width, self._windowed_height),
+            )
+
+        pygame.display.set_caption(self._title)
+
+        return self.get_window_size()
+
+    @staticmethod
+    def get_desktop_size() -> tuple[int, int]:
+        pygame.init()
+
+        desktop_sizes = pygame.display.get_desktop_sizes()
+
+        if not desktop_sizes:
+            return 800, 600
+        
+        return desktop_sizes[0]
+
+    def get_window_size(self: "PygameWrapper") -> tuple[int, int]:
+        return self._screen.get_size()
+
+    def is_fullscreen(self: "PygameWrapper") -> bool:
+        return self._is_fullscreen
 
     def draw_line(
         self: "PygameWrapper",
@@ -458,3 +508,11 @@ class PygameWrapper:
         }
 
         return key_map.get(key, Key.UNKNOWN)
+
+    def get_desktop_size(self: "PygameWrapper") -> tuple[int, int]:
+        desktop_sizes = pygame.display.get_desktop_sizes()
+
+        if not desktop_sizes:
+            return self._screen.get_size()
+
+        return desktop_sizes[0]

@@ -1,6 +1,13 @@
 from ..graphics.image import Image
 
 
+def get_text_width(text: str, font_size: int) -> int:
+    if not text:
+        return 0
+
+    return (len(text) * 5 + (len(text) - 1)) * font_size
+
+
 def get_aligned_position(
     align: tuple[str | int | float],
     text: str,

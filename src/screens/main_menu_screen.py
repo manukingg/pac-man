@@ -4,7 +4,7 @@ from ..ui import MenuButton, DropdownButton, DropdownButtonState
 from .resolutions import settings_resolutions, resolutions
 
 from ..graphics import (
-    PygameWrapper,
+    GraphicsBackend,
     get_aligned_position,
     get_text_width,
     Image,
@@ -48,7 +48,7 @@ class MainMenuScreen(Screen):
         self._repeat_elapsed = 0.0
 
         self._repeat_start_delay = 0.5
-        self._repeat_interval = 0.07
+        self._repeat_interval = 0.04
 
         self._cache: dict[tuple[str, int, Color], Image] = {}
         self._prepared_cache_key: tuple[int, int, int, int] | None = None
@@ -80,7 +80,7 @@ class MainMenuScreen(Screen):
     def render(
         self: "MainMenuScreen",
         image: Image,
-        display: PygameWrapper,
+        display: GraphicsBackend,
         state: AppState,
     ) -> None:
         self._render_menu_screen(image, display, state)
@@ -88,7 +88,7 @@ class MainMenuScreen(Screen):
     def _render_menu_screen(
         self: "MainMenuScreen",
         image: Image,
-        display: PygameWrapper,
+        display: GraphicsBackend,
         state: AppState,
     ) -> None:
         resolution_key = settings_resolutions.get((image.width, image.height))
@@ -165,7 +165,7 @@ class MainMenuScreen(Screen):
         button_index: int,
         font_size: int,
         image: Image,
-        display: PygameWrapper,
+        display: GraphicsBackend,
     ) -> None:
         default_color = (94, 94, 92)
         focus_color = (255, 255, 255)
@@ -198,7 +198,7 @@ class MainMenuScreen(Screen):
         buttons_font: int,
         dropdown_font_size: int,
         dropdown_options_font_size: int,
-        display: PygameWrapper,
+        display: GraphicsBackend,
     ) -> None:
         cache_key = (
             name_font,
@@ -290,7 +290,7 @@ class MainMenuScreen(Screen):
         x: int,
         y: int,
         image: Image,
-        display: PygameWrapper,
+        display: GraphicsBackend,
     ) -> None:
         text_image = self._get_text_image(
             text=text,
@@ -312,7 +312,7 @@ class MainMenuScreen(Screen):
         font_size: int,
         color: Color,
         image: Image,
-        display: PygameWrapper,
+        display: GraphicsBackend,
     ) -> None:
         arrow_gap = font_size * 2
         arrow_width = 5 * font_size
@@ -355,7 +355,7 @@ class MainMenuScreen(Screen):
         text: str,
         font_size: int,
         color: Color,
-        display: PygameWrapper,
+        display: GraphicsBackend,
     ) -> Image:
         key = (text, font_size, color)
 
@@ -389,7 +389,7 @@ class MainMenuScreen(Screen):
         dropdown_font_size: int,
         dropdown_options_font_size: int,
         image: Image,
-        display: PygameWrapper,
+        display: GraphicsBackend,
     ) -> None:
         default_color = (94, 94, 92)
         focus_color = (255, 255, 255)
@@ -443,7 +443,7 @@ class MainMenuScreen(Screen):
         button_index: int,
         dropdown_options_font_size: int,
         image: Image,
-        display: PygameWrapper,
+        display: GraphicsBackend,
     ) -> None:
         default_color = (94, 94, 92)
         focus_color = (255, 255, 255)

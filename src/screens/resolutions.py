@@ -105,16 +105,16 @@ settings_resolutions: dict = {
 }
 
 SUPPORTED_WINDOW_RESOLUTIONS: list[tuple[int, int]] = [
-    (800, 600),
-    (1024, 768),
-    (1280, 720),
-    (1280, 1024),
-    (1440, 900),
-    (1600, 1200),
-    (1680, 1050),
-    (1920, 1080),
-    (1920, 1200),
     (3840, 2022),
+    (1920, 1200),
+    (1920, 1080),
+    (1680, 1050),
+    (1600, 1200),
+    (1440, 900),
+    (1280, 1024),
+    (1280, 720),
+    (1024, 768),
+    (800, 600),
 ]
 
 
@@ -139,7 +139,7 @@ def parse_resolution_text(value: str) -> tuple[int, int] | None:
     return width, height
 
 
-def get_available_resolution(
+def get_available_resolutions(
     desktop_width: int,
     desktop_height: int,
 ) -> list[tuple[int, int]]:
@@ -159,13 +159,9 @@ def get_available_resolution_options(
     desktop_width: int,
     desktop_height: int,
 ) -> list[str]:
-    res = []
-    for width, height in get_available_resolution(desktop_width, desktop_height):
-        res.append(resolution_to_text(width, height))
-    print(res)
     return [
         resolution_to_text(width, height)
-        for width, height in get_available_resolution(
+        for width, height in get_available_resolutions(
             desktop_width=desktop_width,
             desktop_height=desktop_height,
         )

@@ -1,4 +1,5 @@
 import pygame
+import json
 
 from pathlib import Path
 
@@ -10,7 +11,7 @@ from .screens import (
     MainMenuScreen,
     GameScreen,
     get_available_resolution_options,
-    get_available_resolution,
+    get_available_resolutions,
     get_nearest_available_resolution,
     resolution_to_text,
     parse_resolution_text,
@@ -27,17 +28,53 @@ class Application:
     """Main Pac-Man application."""
 
     def __init__(self: "Application", config: Config) -> None:
+        self._preferences_path = Path("user_preferences.json")
+
+        desktop_width, desktop_height = PygameWrapper.get_desktop_size()
+
+        available_resolutions = get_available_resolutions(
+            desktop_width=desktop_width,
+            desktop_height=desktop_height,
+        )
+
+        preferred_resolution = self._load_preferred_resolution()
+
+        if preferred_resolution is None:
+            preferred_resolution = (
+                config.window_width,
+                config.window_height,
+            )
+
+        self.width, self.height = get_nearest_available_resolution(
+            requested_width=preferred_resolution[0],
+            requested_height=preferred_resolution[1],
+            available_resolutions=available_resolutions,
+        )
+
+        config.window_width = self.width
+        config.window_height = self.height
+
         self._state = AppState(
-            current_screen=ScreenType.GAME,
+            current_screen=ScreenType.MAIN_MENU,
             config=config,
         )
 
         assets_path = Path("assets")
 
         self._display = PygameWrapper(
-            width=config.window_width,
-            height=config.window_height,
+            width=self.width,
+            height=self.height,
             title="Pac-Man",
+        )
+
+        current_resolution = resolution_to_text(
+            width=self.width,
+            height=self.height,
+        )
+
+        resolution_options = get_available_resolution_options(
+            desktop_width=desktop_width,
+            desktop_height=desktop_height,
         )
 
         pacman_animations = {
@@ -89,18 +126,6 @@ class Application:
             initial_animation="left"
         )
 
-        desktop_width, desktop_height = self._display.get_desktop_size()
-
-        current_resolution = f"{config.window_width}x{config.window_height}"
-
-        resolution_options = get_available_resolution_options(
-            desktop_width=desktop_width,
-            desktop_height=desktop_height,
-        )
-
-        if current_resolution not in resolution_options:
-            resolution_options.insert(0, current_resolution)
-
         self._screens: dict[ScreenType, Screen] = {
             ScreenType.MAIN_MENU: MainMenuScreen(
                 resolution_options=resolution_options,
@@ -108,9 +133,6 @@ class Application:
             ),
             ScreenType.GAME: GameScreen(pacman_sprite=pacman_sprite)
         }
-
-        self.width = config.window_width
-        self.height = config.window_height
 
         self._game_state_factory = GameStateFactory(config)
         level = Level(level_number=1, width=20, height=20)
@@ -120,9 +142,53 @@ class Application:
 
         self._frame_needs_rebuild = False
 
+    def _load_preferred_resolution(
+        self: "Application",
+    ) -> tuple[int, int] | None:
+        try:
+            raw_text = self._preferences_path.read_text(encoding="utf-8")
+            raw_data = json.loads(raw_text)
+        except FileNotFoundError:
+            return None
+        except json.JSONDecodeError:
+            return None
+        except OSError:
+            return None
+
+        if not isinstance(raw_data, dict):
+            return None
+
+        width = raw_data.get("window_width")
+        height = raw_data.get("window_height")
+
+        if not isinstance(width, int) or not isinstance(height, int):
+            return None
+
+        if width <= 0 or height <= 0:
+            return None
+
+        return width, height
+
+    def _save_user_preferences(self: "Application") -> None:
+        data = {
+            "window_width": self.width,
+            "window_height": self.height,
+        }
+
+        try:
+            self._preferences_path.write_text(
+                json.dumps(data, indent=4) + "\n",
+                encoding="utf-8",
+            )
+        except OSError as error:
+            print(f"Could not save user preferences: {error}")
+
     def _handle_action(self: "Application", action: str | None) -> None:
         if action is None:
             return
+
+        if action == "start_game":
+            self._state.current_screen = ScreenType.GAME
 
         if action == "quit":
             self._state.running = False
@@ -135,7 +201,7 @@ class Application:
         if action.startswith("set_resolution:"):
             _, value = action.split(":", 1)
 
-            size = self._parse_resolution(value)
+            size = parse_resolution_text(value)
             if size is None:
                 print(f"Invalid resolution: {value}")
                 return
@@ -156,6 +222,7 @@ class Application:
                 height=self.height,
             )
             self._frame_needs_rebuild = True
+            self._save_user_preferences()
             return
 
     def run(self: "Application") -> None:
@@ -163,7 +230,7 @@ class Application:
         try:
             frame = self._display.new_image(self.width, self.height)
             while self._state.running:
-                delta_time = 0  # self._clock.tick(60) / 1000.0
+                delta_time = self._clock.tick(60) / 1000.0
 
                 screen = self._screens[self._state.current_screen]
 

@@ -1,4 +1,7 @@
 from pathlib import Path
+import time
+
+from collections.abc import Callable
 
 import pygame
 
@@ -12,6 +15,7 @@ from typing import Optional, Iterable
 
 
 Color = tuple[int, int, int]
+FrameCallback = Callable[[float], bool]
 
 
 class PygameWrapper:
@@ -156,6 +160,28 @@ class PygameWrapper:
 
     def get_window_size(self: "PygameWrapper") -> tuple[int, int]:
         return self._screen.get_size()
+
+    def start_loop(
+        self: "PygameWrapper",
+        frame_callback: FrameCallback,
+        fps: int = 60,
+    ) -> None:
+        target_frame_time = 1.0 / fps
+        previous_time = time.perf_counter()
+        running = True
+
+        while running:
+            frame_start_time = time.perf_counter()
+            delta_time = frame_start_time - previous_time
+            previous_time = frame_start_time
+
+            running = frame_callback(delta_time)
+
+            elapsed = time.perf_counter() - frame_start_time
+            sleep_time = target_frame_time - elapsed
+
+            if sleep_time > 0:
+                time.sleep(sleep_time)
 
     def draw_line(
         self: "PygameWrapper",

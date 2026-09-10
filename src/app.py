@@ -1,5 +1,4 @@
 import json
-import time
 
 from pathlib import Path
 
@@ -138,9 +137,6 @@ class Application:
         level = Level(level_number=1, width=20, height=20)
         self._state.game_state = self._game_state_factory.create(level=level)
 
-        self._target_fps = 60
-        self._target_frame_time = 1.0 / self._target_fps
-
         self._frame = self._display.new_image(self.width, self.height)
 
         self._frame_needs_rebuild = False
@@ -225,11 +221,13 @@ class Application:
         self._display.put_image_to_window(self._frame, 0, 0)
         self._display.present()
 
-    def _run_frame(self: "Application", delta_time: float) -> None:
+    def _run_frame(self: "Application", delta_time: float) -> bool:
         self._handle_events()
         self._update_current_screen(delta_time)
         self._rebuild_frame_if_needed()
         self._render_current_screen()
+
+        return self._state.running
 
     def _handle_action(self: "Application", action: str | None) -> None:
         if action is None:
@@ -276,20 +274,7 @@ class Application:
     def run(self: "Application") -> None:
         """Run the application loop."""
         try:
-            previous_time = time.perf_counter()
-
-            while self._state.running:
-                frame_start_time = time.perf_counter()
-                delta_time = frame_start_time - previous_time
-                previous_time = frame_start_time
-
-                self._run_frame(delta_time)
-
-                elapsed = time.perf_counter() - frame_start_time
-                sleep_time = self._target_frame_time - elapsed
-
-                if sleep_time > 0:
-                    time.sleep(sleep_time)
+            self._display.start_loop(self._run_frame)
 
         except Exception as e:
             print(e)

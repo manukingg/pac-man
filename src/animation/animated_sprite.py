@@ -8,7 +8,8 @@ class AnimatedSprite:
     def __init__(
         self: "AnimatedSprite",
         animations: Mapping[str, AnimationClip],
-        initial_animation: str
+        initial_animation: str,
+        playing: bool = True
     ) -> None:
         if not animations:
             raise ValueError("Error: Sprite must have at least one animation")
@@ -20,7 +21,7 @@ class AnimatedSprite:
         self.__current_animation = initial_animation
         self.__frame_index = 0
         self.__elapsed_time = 0.0
-        self.__playing = True
+        self.__playing = playing
 
     @property
     def current_image(self: "AnimatedSprite") -> Image:

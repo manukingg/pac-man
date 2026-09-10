@@ -1,4 +1,4 @@
-from ..graphics.image import Image
+from .image import Image
 
 
 def get_text_width(text: str, font_size: int) -> int:

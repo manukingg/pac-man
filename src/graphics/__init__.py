@@ -4,6 +4,7 @@ from .rect import Rect
 from .helpers import get_aligned_position, get_text_width
 from .events import EventType, GraphicsEvent, Key
 from .animation import AnimationClip
+from .events import GraphicsEvent, EventType, Key
 
 
 __all__ = (
@@ -17,4 +18,8 @@ __all__ = (
     GraphicsEvent,
     Key,
     AnimationClip,
+    AnimationClip,
+    GraphicsEvent,
+    EventType,
+    Key
 )

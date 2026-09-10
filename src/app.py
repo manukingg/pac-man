@@ -123,7 +123,8 @@ class Application:
 
         pacman_sprite = AnimatedSprite(
             animations=pacman_animations,
-            initial_animation="left"
+            initial_animation="left",
+            playing=False
         )
 
         self._screens: dict[ScreenType, Screen] = {

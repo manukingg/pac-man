@@ -6,6 +6,7 @@ from ..models import (
     GridPosition,
     Level,
     PlayerModel,
+    MazeGrid
 )
 from ..services import MazeGeneratorService
 
@@ -47,13 +48,13 @@ class GameStateFactory:
         """Create the player in the center of the level."""
 
         position = GridPosition(
-            row=level.height // 2,
-            column=level.width // 2,
+            row=level.height // 2 - 1,
+            column=level.width // 2 - 1,
         )
 
         return PlayerModel(
-            position=position,
-            spawn_position=position,
+            grid_position=position,
+            spawn_grid_position=position,
         )
 
     def __create_ghosts(

@@ -4,7 +4,7 @@ from .config_model import Config, Level
 from .player import PlayerModel
 from .ghost import GhostModel, GhostKind
 from .maze import Wall, MazeGrid
-from .common import GridPosition
+from .common import GridPosition, Direction, Position
 
 
 __all__ = (
@@ -19,4 +19,6 @@ __all__ = (
     Level,
     GridPosition,
     GhostKind,
+    Direction,
+    Position
 )

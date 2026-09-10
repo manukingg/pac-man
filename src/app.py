@@ -79,42 +79,42 @@ class Application:
         pacman_animations = {
             "right": self._display.load_animation(
                 paths=[
-                    assets_path / "pacman-right/1.png",
-                    assets_path / "pacman-right/2.png",
-                    assets_path / "pacman-right/3.png",
-                    assets_path / "pacman-right/2.png",
-                    assets_path / "pacman-right/1.png",
+                    assets_path / "pacman-right/1.xpm",
+                    assets_path / "pacman-right/2.xpm",
+                    assets_path / "pacman-right/3.xpm",
+                    assets_path / "pacman-right/2.xpm",
+                    assets_path / "pacman-right/1.xpm",
 
                 ],
                 frame_duration=0.08
             ),
             "left": self._display.load_animation(
                 paths=[
-                    assets_path / "pacman-left/3.png",
-                    assets_path / "pacman-left/2.png",
-                    assets_path / "pacman-left/1.png",
-                    assets_path / "pacman-left/2.png",
-                    assets_path / "pacman-left/3.png"
+                    assets_path / "pacman-left/3.xpm",
+                    assets_path / "pacman-left/2.xpm",
+                    assets_path / "pacman-left/1.xpm",
+                    assets_path / "pacman-left/2.xpm",
+                    assets_path / "pacman-left/3.xpm"
                 ],
                 frame_duration=0.08
             ),
             "up": self._display.load_animation(
                 paths=[
-                    assets_path / "pacman-up/1.png",
-                    assets_path / "pacman-up/2.png",
-                    assets_path / "pacman-up/3.png",
-                    assets_path / "pacman-up/2.png",
-                    assets_path / "pacman-up/1.png",
+                    assets_path / "pacman-up/1.xpm",
+                    assets_path / "pacman-up/2.xpm",
+                    assets_path / "pacman-up/3.xpm",
+                    assets_path / "pacman-up/2.xpm",
+                    assets_path / "pacman-up/1.xpm",
                 ],
                 frame_duration=0.08
             ),
             "down": self._display.load_animation(
                 paths=[
-                    assets_path / "pacman-down/1.png",
-                    assets_path / "pacman-down/2.png",
-                    assets_path / "pacman-down/3.png",
-                    assets_path / "pacman-down/2.png",
-                    assets_path / "pacman-down/1.png"
+                    assets_path / "pacman-down/1.xpm",
+                    assets_path / "pacman-down/2.xpm",
+                    assets_path / "pacman-down/3.xpm",
+                    assets_path / "pacman-down/2.xpm",
+                    assets_path / "pacman-down/1.xpm"
                 ],
                 frame_duration=0.08
             )

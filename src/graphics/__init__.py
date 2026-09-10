@@ -6,6 +6,8 @@ from .helpers import get_aligned_position, get_text_width
 from .events import EventType, GraphicsEvent, Key
 from .animation import AnimationClip
 from .backend import GraphicsBackend
+from .mlx_image import MlxImage
+from .mlx_wrapper import MlxWrapper
 
 
 __all__ = (
@@ -21,4 +23,6 @@ __all__ = (
     Key,
     AnimationClip,
     GraphicsBackend,
+    MlxImage,
+    MlxWrapper
 )

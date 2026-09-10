@@ -7,7 +7,7 @@ from ..graphics import (
     GraphicsBackend,
     get_aligned_position,
     get_text_width,
-    Image,
+    MlxImage,
     GraphicsEvent, EventType,
     Rect,
     Color,
@@ -50,7 +50,7 @@ class MainMenuScreen(Screen):
         self._repeat_start_delay = 0.5
         self._repeat_interval = 0.04
 
-        self._cache: dict[tuple[str, int, Color], Image] = {}
+        self._cache: dict[tuple[str, int, Color], MlxImage] = {}
         self._prepared_cache_key: tuple[int, int, int, int] | None = None
         self._layout_key: tuple[int, int, int, int, int] | None = None
 
@@ -79,7 +79,7 @@ class MainMenuScreen(Screen):
 
     def render(
         self: "MainMenuScreen",
-        image: Image,
+        image: MlxImage,
         display: GraphicsBackend,
         state: AppState,
     ) -> None:
@@ -87,7 +87,7 @@ class MainMenuScreen(Screen):
 
     def _render_menu_screen(
         self: "MainMenuScreen",
-        image: Image,
+        image: MlxImage,
         display: GraphicsBackend,
         state: AppState,
     ) -> None:
@@ -164,7 +164,7 @@ class MainMenuScreen(Screen):
         button: MenuButton,
         button_index: int,
         font_size: int,
-        image: Image,
+        image: MlxImage,
         display: GraphicsBackend,
     ) -> None:
         default_color = (94, 94, 92)
@@ -289,7 +289,7 @@ class MainMenuScreen(Screen):
         color: Color,
         x: int,
         y: int,
-        image: Image,
+        image: MlxImage,
         display: GraphicsBackend,
     ) -> None:
         text_image = self._get_text_image(
@@ -311,7 +311,7 @@ class MainMenuScreen(Screen):
         button_rect: Rect,
         font_size: int,
         color: Color,
-        image: Image,
+        image: MlxImage,
         display: GraphicsBackend,
     ) -> None:
         arrow_gap = font_size * 2
@@ -356,7 +356,7 @@ class MainMenuScreen(Screen):
         font_size: int,
         color: Color,
         display: GraphicsBackend,
-    ) -> Image:
+    ) -> MlxImage:
         key = (text, font_size, color)
 
         if key not in self._cache:
@@ -388,7 +388,7 @@ class MainMenuScreen(Screen):
         font_size: int,
         dropdown_font_size: int,
         dropdown_options_font_size: int,
-        image: Image,
+        image: MlxImage,
         display: GraphicsBackend,
     ) -> None:
         default_color = (94, 94, 92)
@@ -442,7 +442,7 @@ class MainMenuScreen(Screen):
         button: DropdownButton,
         button_index: int,
         dropdown_options_font_size: int,
-        image: Image,
+        image: MlxImage,
         display: GraphicsBackend,
     ) -> None:
         default_color = (94, 94, 92)
@@ -470,7 +470,7 @@ class MainMenuScreen(Screen):
 
     def _update_layout(
         self: "MainMenuScreen",
-        image: Image,
+        image: MlxImage,
         font_size: int,
         start_y: int,
         gap_between_buttons: int,

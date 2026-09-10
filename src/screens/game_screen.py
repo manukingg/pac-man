@@ -1,5 +1,5 @@
 from ..animation import AnimatedSprite
-from ..graphics import Image, PygameWrapper
+from ..graphics import MlxImage, MlxWrapper, MlxImage, MlxWrapper
 from ..graphics.events import GraphicsEvent
 from ..models import AppState, Wall
 
@@ -42,8 +42,8 @@ class GameScreen(Screen):
 
     def render(
         self: "GameScreen",
-        display: PygameWrapper,
-        image: Image,
+        display: MlxWrapper,
+        image: MlxImage,
         state: AppState,
     ) -> None:
         """Render the current maze."""
@@ -92,8 +92,8 @@ class GameScreen(Screen):
 
     def __render_maze(
         self: "GameScreen",
-        display: PygameWrapper,
-        image: Image,
+        display: MlxWrapper,
+        image: MlxImage,
         maze: list[list[int]],
     ) -> None:
         """Render every wall in the current maze."""
@@ -285,8 +285,8 @@ class GameScreen(Screen):
 
     def __render_error(
         self: "GameScreen",
-        display: PygameWrapper,
-        image: Image,
+        display: MlxWrapper,
+        image: MlxImage,
         text: str,
     ) -> None:
         """Render a non-fatal game screen error."""

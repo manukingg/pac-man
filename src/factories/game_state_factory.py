@@ -41,6 +41,14 @@ class GameStateFactory:
             remaining_time=float(self.__config.level_max_time),
         )
 
+    # def __create_pallets(
+    #     self: "GameStateFactory",
+    #     maze: MazeGrid
+    # ) -> set[GridPosition]:
+    #     for row in maze:
+    #         for col in row:
+
+
     def __create_player(
         self: "GameStateFactory",
         level: Level,

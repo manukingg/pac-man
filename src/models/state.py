@@ -5,6 +5,7 @@ from .ghost import GhostModel
 from .player import PlayerModel
 from .screen import ScreenType
 from .maze import MazeGrid
+from .common import GridPosition
 
 
 @dataclass
@@ -13,6 +14,7 @@ class GameState:
     maze: MazeGrid
     ghosts: list[GhostModel]
     player: PlayerModel
+    # pallets: set[GridPosition]
     score: int
     lives: int
     level: int

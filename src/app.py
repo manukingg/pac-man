@@ -1,10 +1,9 @@
-import pygame
 import json
 
 from pathlib import Path
 
 from .animation import AnimatedSprite
-from .graphics import PygameWrapper
+from .graphics import GraphicsBackend
 from .models import AppState, ScreenType
 from .screens import (
     Screen,
@@ -30,7 +29,7 @@ class Application:
     def __init__(self: "Application", config: Config) -> None:
         self._preferences_path = Path("user_preferences.json")
 
-        desktop_width, desktop_height = PygameWrapper.get_desktop_size()
+        desktop_width, desktop_height = GraphicsBackend.get_desktop_size()
 
         available_resolutions = get_available_resolutions(
             desktop_width=desktop_width,
@@ -61,7 +60,7 @@ class Application:
 
         assets_path = Path("assets")
 
-        self._display = PygameWrapper(
+        self._display = GraphicsBackend(
             width=self.width,
             height=self.height,
             title="Pac-Man",
@@ -80,42 +79,42 @@ class Application:
         pacman_animations = {
             "right": self._display.load_animation(
                 paths=[
-                    assets_path / "pacman-right/1.png",
-                    assets_path / "pacman-right/2.png",
-                    assets_path / "pacman-right/3.png",
-                    assets_path / "pacman-right/2.png",
-                    assets_path / "pacman-right/1.png",
+                    assets_path / "pacman-right/1.xpm",
+                    assets_path / "pacman-right/2.xpm",
+                    assets_path / "pacman-right/3.xpm",
+                    assets_path / "pacman-right/2.xpm",
+                    assets_path / "pacman-right/1.xpm",
 
                 ],
                 frame_duration=0.08
             ),
             "left": self._display.load_animation(
                 paths=[
-                    assets_path / "pacman-left/3.png",
-                    assets_path / "pacman-left/2.png",
-                    assets_path / "pacman-left/1.png",
-                    assets_path / "pacman-left/2.png",
-                    assets_path / "pacman-left/3.png"
+                    assets_path / "pacman-left/3.xpm",
+                    assets_path / "pacman-left/2.xpm",
+                    assets_path / "pacman-left/1.xpm",
+                    assets_path / "pacman-left/2.xpm",
+                    assets_path / "pacman-left/3.xpm"
                 ],
                 frame_duration=0.08
             ),
             "up": self._display.load_animation(
                 paths=[
-                    assets_path / "pacman-up/1.png",
-                    assets_path / "pacman-up/2.png",
-                    assets_path / "pacman-up/3.png",
-                    assets_path / "pacman-up/2.png",
-                    assets_path / "pacman-up/1.png",
+                    assets_path / "pacman-up/1.xpm",
+                    assets_path / "pacman-up/2.xpm",
+                    assets_path / "pacman-up/3.xpm",
+                    assets_path / "pacman-up/2.xpm",
+                    assets_path / "pacman-up/1.xpm",
                 ],
                 frame_duration=0.08
             ),
             "down": self._display.load_animation(
                 paths=[
-                    assets_path / "pacman-down/1.png",
-                    assets_path / "pacman-down/2.png",
-                    assets_path / "pacman-down/3.png",
-                    assets_path / "pacman-down/2.png",
-                    assets_path / "pacman-down/1.png"
+                    assets_path / "pacman-down/1.xpm",
+                    assets_path / "pacman-down/2.xpm",
+                    assets_path / "pacman-down/3.xpm",
+                    assets_path / "pacman-down/2.xpm",
+                    assets_path / "pacman-down/1.xpm"
                 ],
                 frame_duration=0.08
             )
@@ -139,7 +138,7 @@ class Application:
         level = Level(level_number=1, width=20, height=20)
         self._state.game_state = self._game_state_factory.create(level=level)
 
-        self._clock = pygame.time.Clock()
+        self._frame = self._display.new_image(self.width, self.height)
 
         self._frame_needs_rebuild = False
 
@@ -183,6 +182,53 @@ class Application:
             )
         except OSError as error:
             print(f"Could not save user preferences: {error}")
+
+    def _rebuild_frame_if_needed(self: "Application") -> None:
+        if not self._frame_needs_rebuild:
+            return
+
+        self._frame = self._display.new_image(self.width, self.height)
+        self._frame_needs_rebuild = False
+
+    def _handle_events(self: "Application") -> None:
+        screen = self._screens[self._state.current_screen]
+
+        for event in self._display.poll_events():
+            if event.type == EventType.QUIT:
+                self._state.running = False
+                return
+            action = screen.handle_event(event, self._state)
+            self._handle_action(action)
+
+            screen = self._screens[self._state.current_screen]
+
+    def _update_current_screen(self: "Application", delta_time: float) -> None:
+        screen = self._screens[self._state.current_screen]
+
+        action = screen.update(delta_time, self._state)
+        self._handle_action(action)
+
+    def _render_current_screen(self: "Application") -> None:
+        screen = self._screens[self._state.current_screen]
+
+        self._display.clear(self._frame, (0, 0, 0))
+
+        screen.render(
+            display=self._display,
+            image=self._frame,
+            state=self._state,
+        )
+
+        self._display.put_image_to_window(self._frame, 0, 0)
+        self._display.present()
+
+    def _run_frame(self: "Application", delta_time: float) -> bool:
+        self._handle_events()
+        self._update_current_screen(delta_time)
+        self._rebuild_frame_if_needed()
+        self._render_current_screen()
+
+        return self._state.running
 
     def _handle_action(self: "Application", action: str | None) -> None:
         if action is None:
@@ -229,38 +275,7 @@ class Application:
     def run(self: "Application") -> None:
         """Run the application loop."""
         try:
-            frame = self._display.new_image(self.width, self.height)
-            while self._state.running:
-                delta_time = self._clock.tick(60) / 1000.0
-
-                screen = self._screens[self._state.current_screen]
-
-                for event in self._display.poll_events():
-                    if event.type == EventType.QUIT:
-                        self._state.running = False
-                        continue
-
-                    action = screen.handle_event(event, self._state)
-                    self._handle_action(action)
-
-                screen = self._screens[self._state.current_screen]
-
-                action = screen.update(delta_time, self._state)
-                self._handle_action(action)
-
-                if self._frame_needs_rebuild:
-                    frame = self._display.new_image(self.width, self.height)
-                    self._frame_needs_rebuild = False
-
-                self._display.clear(frame, (0, 0, 0))
-
-                screen.render(
-                    display=self._display,
-                    image=frame,
-                    state=self._state
-                )
-                self._display.put_image_to_window(frame, 0, 0)
-                self._display.present()
+            self._display.start_loop(self._run_frame)
 
         except Exception as e:
             print(e)

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from ..graphics import PygameWrapper
+from ..graphics import GraphicsBackend
 from ..graphics.image import Image
 from ..models import AppState
 from ..graphics.events import EventType
@@ -28,7 +28,7 @@ class Screen(ABC):
     @abstractmethod
     def render(
         self: "Screen",
-        display: PygameWrapper,
+        display: GraphicsBackend,
         image: Image,
         state: AppState
     ) -> None:

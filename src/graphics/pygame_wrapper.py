@@ -1,9 +1,13 @@
 from pathlib import Path
+import time
+
+from collections.abc import Callable
 
 import pygame
 
 from .events import EventType, GraphicsEvent, Key
 from .image import Image
+from .pygame_image import PygameImage
 from .font_map import FONT_MAP
 from .helpers import get_aligned_position
 from .animation import AnimationClip
@@ -11,6 +15,7 @@ from typing import Optional, Iterable
 
 
 Color = tuple[int, int, int]
+FrameCallback = Callable[[float], bool]
 
 
 class PygameWrapper:
@@ -26,15 +31,19 @@ class PygameWrapper:
         self._screen = pygame.display.set_mode((width, height))
         pygame.display.set_caption(title)
 
+        self._event_queue: list[GraphicsEvent] = []
+        print("PYGAME INITIALIZED")
+
     def new_image(self: "PygameWrapper", width: int, height: int) -> Image:
-        return Image(pygame.Surface((width, height)))
+        return PygameImage(pygame.Surface((width, height)))
 
     def load_image(self: "PygameWrapper", path: str | Path) -> Image:
         surface = pygame.image.load(str(path)).convert_alpha()
-        return Image(surface)
+        return PygameImage(surface)
 
     def clear(self: "PygameWrapper", image: Image, color: Color) -> None:
-        image.fill(color)
+        pygame_image = self._as_pygame_image(image)
+        pygame_image.fill(color)
 
     def clear_window(self: "PygameWrapper", color: Color) -> None:
         self._screen.fill(color)
@@ -74,7 +83,8 @@ class PygameWrapper:
         color: Color,
     ) -> None:
         if 0 <= x < image.width and 0 <= y < image.height:
-            image.set_at((x, y), color)
+            pygame_image = self._as_pygame_image(image)
+            pygame_image.set_at((x, y), color)
 
     def get_pixel(
         self: "PygameWrapper",
@@ -82,7 +92,8 @@ class PygameWrapper:
         x: int,
         y: int
     ) -> Color:
-        return image.get_at(x, y)
+        pygame_image = self._as_pygame_image(image)
+        return pygame_image.get_at(x, y)
 
     def put_image(
         self: "PygameWrapper",
@@ -92,8 +103,11 @@ class PygameWrapper:
         y: int,
         scale: tuple[int, int] | None = None,
     ) -> None:
+        target_image = self._as_pygame_image(target)
+        source_image = self._as_pygame_image(source)
+
         if scale is None:
-            target.blit(source, (x, y))
+            target_image.blit(source, (x, y))
             return
 
         width, height = scale
@@ -102,12 +116,12 @@ class PygameWrapper:
             raise ValueError("Scale size must be positive")
 
         if width == source.width and height == source.height:
-            target.blit(source, (x, y))
+            target_image.blit(source, (x, y))
             return
 
         self.__put_scaled_image(
-            target=target,
-            source=source,
+            target=target_image,
+            source=source_image,
             x=x,
             y=y,
             size=scale
@@ -119,20 +133,20 @@ class PygameWrapper:
         x: int,
         y: int,
     ) -> None:
-        self._screen.blit(image._surface, (x, y))
+        pygame_image = self._as_pygame_image(image)
+        self._screen.blit(pygame_image._surface, (x, y))
 
     def present(self: "PygameWrapper") -> None:
         pygame.display.flip()
 
     def poll_events(self: "PygameWrapper") -> list[GraphicsEvent]:
-        events: list[GraphicsEvent] = []
+        for pygame_event in pygame.event.get():
+            converted_event = self._convert_event(pygame_event)
 
-        for event in pygame.event.get():
-            converted = self._convert_event(event)
-            if converted is not None:
-                events.append(converted)
+            if converted_event is not None:
+                self._push_event(converted_event)
 
-        return events
+        return self._drain_event_queue()
 
     @staticmethod
     def get_desktop_size() -> tuple[int, int]:
@@ -147,6 +161,28 @@ class PygameWrapper:
 
     def get_window_size(self: "PygameWrapper") -> tuple[int, int]:
         return self._screen.get_size()
+
+    def start_loop(
+        self: "PygameWrapper",
+        frame_callback: FrameCallback,
+        fps: int = 60,
+    ) -> None:
+        target_frame_time = 1.0 / fps
+        previous_time = time.perf_counter()
+        running = True
+
+        while running:
+            frame_start_time = time.perf_counter()
+            delta_time = frame_start_time - previous_time
+            previous_time = frame_start_time
+
+            running = frame_callback(delta_time)
+
+            elapsed = time.perf_counter() - frame_start_time
+            sleep_time = target_frame_time - elapsed
+
+            if sleep_time > 0:
+                time.sleep(sleep_time)
 
     def draw_line(
         self: "PygameWrapper",
@@ -321,8 +357,8 @@ class PygameWrapper:
 
     def __put_scaled_image(
         self: "PygameWrapper",
-        target: Image,
-        source: Image,
+        target: PygameImage,
+        source: PygameImage,
         x: int,
         y: int,
         size: tuple[int, int]
@@ -446,25 +482,6 @@ class PygameWrapper:
                 key=self._convert_key(event.key),
             )
 
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            return GraphicsEvent(
-                type=EventType.MOUSE_DOWN,
-                button=event.button,
-                pos=event.pos
-            )
-
-        if event.type == pygame.MOUSEBUTTONUP:
-            return GraphicsEvent(
-                type=EventType.MOUSE_UP,
-                button=event.button,
-                pos=event.pos
-            )
-
-        if event.type == pygame.MOUSEMOTION:
-            return GraphicsEvent(
-                type=EventType.MOUSE_MOTION,
-                pos=event.pos
-            )
         return None
 
     def _convert_key(self: "PygameWrapper", key: int) -> Key:
@@ -483,3 +500,24 @@ class PygameWrapper:
         }
 
         return key_map.get(key, Key.UNKNOWN)
+
+    def _as_pygame_image(
+        self: "PygameWrapper",
+        image: Image,
+    ) -> PygameImage:
+        if not isinstance(image, PygameImage):
+            raise TypeError("Expected PygameImage")
+
+        return image
+
+    def _push_event(
+        self: "PygameWrapper",
+        event: GraphicsEvent,
+    ) -> None:
+        self._event_queue.append(event)
+
+    def _drain_event_queue(self: "PygameWrapper") -> list[GraphicsEvent]:
+        events = self._event_queue
+        self._event_queue = []
+
+        return events

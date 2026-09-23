@@ -1,5 +1,4 @@
 from ..animation import AnimatedSprite
-<<<<<<< HEAD
 from ..graphics import (
     Image,
     PygameWrapper,
@@ -16,11 +15,9 @@ from ..models import (
     Position,
     Wall,
 )
-=======
 from ..graphics import Image, GraphicsBackend
 from ..graphics.events import GraphicsEvent
 from ..models import AppState, Wall
->>>>>>> b74244e (done mlx)
 
 from .screen import Screen
 

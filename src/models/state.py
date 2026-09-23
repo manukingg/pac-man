@@ -14,11 +14,11 @@ class GameState:
     maze: MazeGrid
     ghosts: list[GhostModel]
     player: PlayerModel
-    # pallets: set[GridPosition]
     score: int
     lives: int
     level: int
     remaining_time: float
+    pallets: set[GridPosition] = None
     paused: bool = False
     power_mode_remaining: float = 0.0
 

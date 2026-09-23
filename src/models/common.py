@@ -34,7 +34,7 @@ class Position:
         )
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, frozen=True)
 class GridPosition:
     """Position inside the maze grid."""
 

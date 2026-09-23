@@ -30,6 +30,7 @@ class GameStateFactory:
         maze = self.__generator_service.generate()
         player = self.__create_player(level)
         ghosts = self.__create_ghosts(level)
+        pallets = self.__create_pallets(maze)
 
         return GameState(
             maze=maze,
@@ -39,15 +40,19 @@ class GameStateFactory:
             lives=self.__config.lives,
             level=level.level_number,
             remaining_time=float(self.__config.level_max_time),
+            pallets=pallets
         )
 
-    # def __create_pallets(
-    #     self: "GameStateFactory",
-    #     maze: MazeGrid
-    # ) -> set[GridPosition]:
-    #     for row in maze:
-    #         for col in row:
-
+    def __create_pallets(
+        self: "GameStateFactory",
+        maze: MazeGrid
+    ) -> set[GridPosition]:
+        pallets: set[GridPosition] = set()
+        for row_index, row in enumerate(maze):
+            for col_index, cell in enumerate(row):
+                if cell != 15:
+                    pallets.add(GridPosition(row=row_index, column=col_index))
+        return pallets
 
     def __create_player(
         self: "GameStateFactory",

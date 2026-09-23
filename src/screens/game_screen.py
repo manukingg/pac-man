@@ -29,7 +29,9 @@ HUD_HEIGHT = 140
 PLAYER_SIZE = 48
 PLAYER_SPEED = 205.0
 POSITION_EPSILON = 0.001
-
+PELLET_COLOR: Color = (255, 220, 180)
+PELLET_SIZE = 6
+BIG_PELLET_SIZE = 18
 
 class GameScreen(Screen):
     """Render and control the current game session."""
@@ -109,6 +111,7 @@ class GameScreen(Screen):
             player=player,
             maze=game_state.maze,
             delta_time=delta_time,
+            pallets=game_state.pallets
         )
 
         self.__pacman_sprite.update(delta_time)
@@ -210,13 +213,45 @@ class GameScreen(Screen):
         self.__initialize_player_position(
             player=game_state.player,
         )
-        print(game_state.player.grid_position)
+
+        self.__render_pallets(display=display, image=image, pallets=game_state.pallets)
 
         self.__render_pacman(
             display=display,
             image=image,
             player=game_state.player,
         )
+
+
+    def __render_pallets(
+        self: "GameScreen",
+        display: PygameWrapper,
+        image: Image,
+        pallets: set[GridPosition],
+    ) -> None:
+        """Render all remaining pallets."""
+
+        for grid_position in pallets:
+            center = self.__get_grid_position_center(
+                grid_position
+            )
+
+            x = int(
+                center.x - PELLET_SIZE / 2
+            )
+
+            y = int(
+                center.y - PELLET_SIZE / 2
+            )
+
+            display.draw_rect(
+                image=image,
+                x=x,
+                y=y,
+                width=PELLET_SIZE,
+                height=PELLET_SIZE,
+                color=PELLET_COLOR,
+            )
 
     def __initialize_player_position(
         self: "GameScreen",
@@ -238,6 +273,7 @@ class GameScreen(Screen):
         player: PlayerModel,
         maze: MazeGrid,
         delta_time: float,
+        pallets: set[GridPosition]
     ) -> None:
         """Move Pac-Man continuously through the maze."""
 
@@ -323,6 +359,8 @@ class GameScreen(Screen):
 
             player.move_to(target_position)
             player.move_to_grid(target_grid_position)
+            if target_grid_position in pallets:
+                pallets.remove(target_grid_position)
 
     def __try_change_direction(
         self: "GameScreen",

@@ -1,5 +1,5 @@
 from ..animation import AnimatedSprite
-from ..graphics import Image, PygameWrapper
+from ..graphics import Image, GraphicsBackend
 from ..graphics.events import GraphicsEvent
 from ..models import AppState, Wall
 
@@ -42,7 +42,7 @@ class GameScreen(Screen):
 
     def render(
         self: "GameScreen",
-        display: PygameWrapper,
+        display: GraphicsBackend,
         image: Image,
         state: AppState,
     ) -> None:
@@ -92,7 +92,7 @@ class GameScreen(Screen):
 
     def __render_maze(
         self: "GameScreen",
-        display: PygameWrapper,
+        display: GraphicsBackend,
         image: Image,
         maze: list[list[int]],
     ) -> None:
@@ -285,7 +285,7 @@ class GameScreen(Screen):
 
     def __render_error(
         self: "GameScreen",
-        display: PygameWrapper,
+        display: GraphicsBackend,
         image: Image,
         text: str,
     ) -> None:

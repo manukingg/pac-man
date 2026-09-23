@@ -2,6 +2,9 @@ from typing import Protocol
 import sys
 
 
+Color = tuple[int, int, int]
+
+
 class Image(Protocol):
     @property
     def width(self: "Image") -> int:

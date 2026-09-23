@@ -18,7 +18,7 @@ class PlayerModel:
 
     alive: bool = True
     invincible: bool = False
-    speed_multiplier: float = 1.0
+    speed_multiplier: float = 2
 
     def request_move(self: "PlayerModel", direction: Direction) -> None:
         """Remember the direction requested by the player."""

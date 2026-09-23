@@ -32,6 +32,7 @@ class PygameWrapper:
         pygame.display.set_caption(title)
 
         self._event_queue: list[GraphicsEvent] = []
+        print("PYGAME INITIALIZED")
 
     def new_image(self: "PygameWrapper", width: int, height: int) -> Image:
         return PygameImage(pygame.Surface((width, height)))

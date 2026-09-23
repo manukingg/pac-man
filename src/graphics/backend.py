@@ -1,3 +1,3 @@
-from .pygame_wrapper import PygameWrapper
+from .mlx_wrapper import MlxWrapper
 
-GraphicsBackend = PygameWrapper
+GraphicsBackend = MlxWrapper

@@ -24,6 +24,6 @@ __all__ = (
     AnimationClip,
     GraphicsEvent,
     EventType,
-    Key
+    Key,
     GraphicsBackend,
 )

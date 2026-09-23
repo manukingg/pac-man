@@ -1,4 +1,5 @@
 from ..animation import AnimatedSprite
+<<<<<<< HEAD
 from ..graphics import (
     Image,
     PygameWrapper,
@@ -15,6 +16,11 @@ from ..models import (
     Position,
     Wall,
 )
+=======
+from ..graphics import Image, GraphicsBackend
+from ..graphics.events import GraphicsEvent
+from ..models import AppState, Wall
+>>>>>>> b74244e (done mlx)
 
 from .screen import Screen
 
@@ -112,7 +118,7 @@ class GameScreen(Screen):
 
     def render(
         self: "GameScreen",
-        display: PygameWrapper,
+        display: GraphicsBackend,
         image: Image,
         state: AppState,
     ) -> None:
@@ -688,7 +694,7 @@ class GameScreen(Screen):
 
     def __render_error(
         self: "GameScreen",
-        display: PygameWrapper,
+        display: GraphicsBackend,
         image: Image,
         text: str,
     ) -> None:

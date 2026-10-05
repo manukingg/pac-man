@@ -53,6 +53,16 @@ class Application:
         config.window_width = self.width
         config.window_height = self.height
 
+        current_resolution = resolution_to_text(
+            width=self.width,
+            height=self.height,
+        )
+
+        resolution_options = get_available_resolution_options(
+            desktop_width=desktop_width,
+            desktop_height=desktop_height,
+        )
+
         self._state = AppState(
             current_screen=ScreenType.MAIN_MENU,
             config=config,
@@ -64,16 +74,6 @@ class Application:
             width=self.width,
             height=self.height,
             title="Pac-Man",
-        )
-
-        current_resolution = resolution_to_text(
-            width=self.width,
-            height=self.height,
-        )
-
-        resolution_options = get_available_resolution_options(
-            desktop_width=desktop_width,
-            desktop_height=desktop_height,
         )
 
         pacman_animations = {
@@ -141,6 +141,17 @@ class Application:
         self._frame = self._display.new_image(self.width, self.height)
 
         self._frame_needs_rebuild = False
+
+    def run(self: "Application") -> None:
+        """Run the application loop."""
+        try:
+            self._display.start_loop(self._run_frame)
+
+        except Exception as e:
+            print(e)
+
+        finally:
+            self._display.quit()
 
     def _load_preferred_resolution(
         self: "Application",
@@ -271,14 +282,3 @@ class Application:
             self._frame_needs_rebuild = True
             self._save_user_preferences()
             return
-
-    def run(self: "Application") -> None:
-        """Run the application loop."""
-        try:
-            self._display.start_loop(self._run_frame)
-
-        except Exception as e:
-            print(e)
-
-        finally:
-            self._display.quit()

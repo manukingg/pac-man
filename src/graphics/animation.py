@@ -9,9 +9,9 @@ class AnimationClip:
     frame_duration: float
     loop: bool = True
 
-    def post_init(self: 'AnimationClip') -> None:
+    def __post_init__(self: 'AnimationClip') -> None:
         if not self.frames:
             raise ValueError("Error: Animation must "
                              "contain at least one frame")
-        if self.frame_duration == 0:
+        if self.frame_duration <= 0:
             raise ValueError("Error: Frame duration must be > 0")

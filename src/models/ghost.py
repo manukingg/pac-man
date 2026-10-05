@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from enum import Enum, auto
 
-from .common import Direction, GridPosition
+from .common import Direction, GridPosition, Position
 
 
 class GhostMode(Enum):
@@ -30,16 +30,17 @@ class GhostModel:
     """Mutable state of a single ghost."""
 
     kind: GhostKind
-    position: GridPosition
+
+    position: Position | None = None
+    grid_position: GridPosition
     spawn_position: GridPosition
 
     direction: Direction = Direction.NONE
-    mode: GhostMode = GhostMode.CHASE
+    speed_multiplier: float = 1.0
 
+    mode: GhostMode = GhostMode.CHASE
     respawn_time_remaining: float = 0.0
     frightened_time_remaining: float = 0.0
-
-    speed_multiplier: float = 1.0
 
     @property
     def edible(self: "GhostModel") -> bool:
@@ -100,10 +101,11 @@ class GhostModel:
         self.frightened_time_remaining = 0.0
         self.respawn_time_remaining = max(0.0, respawn_delay)
 
-    def begin_respawn(self: "GhostModel") -> None:
+    def begin_respawn(self: "GhostModel", position: Position) -> None:
         """Move the ghost back to its corner and start respawning."""
 
-        self.position = self.spawn_position
+        self.grid_position = self.spawn_position
+        self.position = position
         self.direction = Direction.NONE
         self.mode = GhostMode.RESPAWNING
 

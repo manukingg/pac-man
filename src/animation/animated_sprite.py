@@ -15,7 +15,7 @@ class AnimatedSprite:
             raise ValueError("Error: Sprite must have at least one animation")
         if initial_animation not in animations:
             raise KeyError(
-                f"Error: animation {initial_animation} is not exist"
+                f"Error: animation {initial_animation} does not exist"
             )
         self.__animations = dict(animations)
         self.__current_animation = initial_animation

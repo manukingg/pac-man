@@ -92,7 +92,7 @@ class GameStateFactory:
             ghosts.append(
                 GhostModel(
                     kind=kind,
-                    position=spawn_position,
+                    grid_position=spawn_position,
                     spawn_position=spawn_position,
                 )
             )

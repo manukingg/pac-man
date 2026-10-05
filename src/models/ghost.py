@@ -31,13 +31,13 @@ class GhostModel:
 
     kind: GhostKind
 
-    position: Position | None = None
     grid_position: GridPosition
     spawn_position: GridPosition
 
-    direction: Direction = Direction.NONE
     speed_multiplier: float = 1.0
 
+    direction: Direction = Direction.NONE
+    position: Position | None = None
     mode: GhostMode = GhostMode.CHASE
     respawn_time_remaining: float = 0.0
     frightened_time_remaining: float = 0.0

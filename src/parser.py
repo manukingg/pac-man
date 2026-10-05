@@ -42,12 +42,12 @@ class Parser:
             print(f"Could not read config file: {error}")
             print("Using default config.")
             return Config()
-        
+
         if not isinstance(raw_config, dict):
             print("Config root must be a JSON object.")
             print("Using default config")
             return Config()
-        
+
         return self._validate_with_field_defaults(raw_config)
 
     def _read_json_with_comments(self: "Parser") -> str:
@@ -70,7 +70,7 @@ class Parser:
     ) -> Config:
         try:
             return Config.model_validate(raw_config)
-        
+
         except ValidationError as error:
             defaults = Config()
             default_data = defaults.model_dump()
@@ -92,7 +92,7 @@ class Parser:
                 print(second_error)
                 print("Using full default config.")
                 return defaults
-    
+
     def _get_invalid_top_level_fields(
         self: "Parser",
         error: ValidationError,
@@ -109,5 +109,5 @@ class Parser:
 
             if field_name in Config.model_fields:
                 invalid_fields.add(field_name)
-        
+
         return invalid_fields

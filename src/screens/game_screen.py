@@ -1,10 +1,10 @@
 from ..animation import AnimatedSprite
 from ..graphics import (
     Image,
-    PygameWrapper,
     GraphicsEvent,
     EventType,
     Key,
+    GraphicsBackend
 )
 from ..models import (
     AppState,
@@ -15,9 +15,6 @@ from ..models import (
     Position,
     Wall,
 )
-from ..graphics import Image, GraphicsBackend
-from ..graphics.events import GraphicsEvent
-from ..models import AppState, Wall
 
 from .screen import Screen
 
@@ -32,6 +29,7 @@ POSITION_EPSILON = 0.001
 PELLET_COLOR: Color = (255, 220, 180)
 PELLET_SIZE = 6
 BIG_PELLET_SIZE = 18
+
 
 class GameScreen(Screen):
     """Render and control the current game session."""
@@ -111,7 +109,7 @@ class GameScreen(Screen):
             player=player,
             maze=game_state.maze,
             delta_time=delta_time,
-            pallets=game_state.pallets
+            pellets=game_state.pellets
         )
 
         self.__pacman_sprite.update(delta_time)
@@ -214,7 +212,11 @@ class GameScreen(Screen):
             player=game_state.player,
         )
 
-        self.__render_pallets(display=display, image=image, pallets=game_state.pallets)
+        self.__render_pellets(
+            display=display,
+            image=image,
+            pellets=game_state.pellets
+        )
 
         self.__render_pacman(
             display=display,
@@ -222,16 +224,15 @@ class GameScreen(Screen):
             player=game_state.player,
         )
 
-
-    def __render_pallets(
+    def __render_pellets(
         self: "GameScreen",
-        display: PygameWrapper,
+        display: GraphicsBackend,
         image: Image,
-        pallets: set[GridPosition],
+        pellets: set[GridPosition],
     ) -> None:
-        """Render all remaining pallets."""
+        """Render all remaining pellets."""
 
-        for grid_position in pallets:
+        for grid_position in pellets:
             center = self.__get_grid_position_center(
                 grid_position
             )
@@ -273,7 +274,7 @@ class GameScreen(Screen):
         player: PlayerModel,
         maze: MazeGrid,
         delta_time: float,
-        pallets: set[GridPosition]
+        pellets: set[GridPosition]
     ) -> None:
         """Move Pac-Man continuously through the maze."""
 
@@ -359,8 +360,8 @@ class GameScreen(Screen):
 
             player.move_to(target_position)
             player.move_to_grid(target_grid_position)
-            if target_grid_position in pallets:
-                pallets.remove(target_grid_position)
+            if target_grid_position in pellets:
+                pellets.remove(target_grid_position)
 
     def __try_change_direction(
         self: "GameScreen",
@@ -416,7 +417,7 @@ class GameScreen(Screen):
 
     def __render_pacman(
         self: "GameScreen",
-        display: PygameWrapper,
+        display: GraphicsBackend,
         image: Image,
         player: PlayerModel,
     ) -> None:
@@ -495,7 +496,7 @@ class GameScreen(Screen):
 
     def __render_maze(
         self: "GameScreen",
-        display: PygameWrapper,
+        display: GraphicsBackend,
         image: Image,
         maze: MazeGrid,
         cell_size: int,

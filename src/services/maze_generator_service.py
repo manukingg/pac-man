@@ -4,7 +4,7 @@ from ..models import Config, MazeGrid, Wall
 
 
 class MazeGeneratorService:
-    
+
     def __init__(self: 'MazeGeneratorService', config: Config) -> None:
         self.__generator = MazeGenerator(
             size=(20, 20),

@@ -18,7 +18,7 @@ class GameState:
     lives: int
     level: int
     remaining_time: float
-    pallets: set[GridPosition] = None
+    pellets: set[GridPosition] | None = None
     paused: bool = False
     power_mode_remaining: float = 0.0
 

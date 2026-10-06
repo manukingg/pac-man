@@ -292,6 +292,18 @@ class GameScreen(Screen):
                 player.grid_position
             )
 
+            if (
+                not self.__positions_equal(
+                    player.position,
+                    current_cell_center,
+                )
+                and self.__is_opposite_direction(
+                    first=player.direction,
+                    second=player.requested_direction,
+                )
+            ):
+                player.change_direction(player.requested_direction)
+
             if self.__positions_equal(
                 player.position,
                 current_cell_center,
@@ -315,6 +327,22 @@ class GameScreen(Screen):
                     self.__pacman_sprite.stop()
                     return
 
+            if self.__is_moving_toward_position(
+                position=player.position,
+                target=current_cell_center,
+                direction=player.direction,
+            ):
+                distance, reached_center = self.__move_player_towards(
+                    player=player,
+                    target=current_cell_center,
+                    distance=distance,
+                )
+
+                if not reached_center:
+                    break
+
+                continue
+
             if player.direction == Direction.NONE:
                 self.__pacman_sprite.stop()
                 return
@@ -327,39 +355,17 @@ class GameScreen(Screen):
                 target_grid_position
             )
 
-            remaining_distance = self.__distance_to_target(
-                position=player.position,
+            distance, reached_target = self.__move_player_towards(
+                player=player,
                 target=target_position,
+                distance=distance,
             )
 
-            if remaining_distance <= POSITION_EPSILON:
-                player.move_to(target_position)
-                player.move_to_grid(target_grid_position)
-                continue
-
-            step = min(
-                distance,
-                remaining_distance,
-            )
-
-            player.move_to(
-                player.position.moved(
-                    direction=player.direction,
-                    distance=step,
-                )
-            )
-
-            self.__pacman_sprite.play(
-                animation=player.direction.name.lower(),
-            )
-
-            distance -= step
-
-            if step + POSITION_EPSILON < remaining_distance:
+            if not reached_target:
                 break
 
-            player.move_to(target_position)
             player.move_to_grid(target_grid_position)
+
             if target_grid_position in pellets:
                 pellets.remove(target_grid_position)
 
@@ -414,6 +420,79 @@ class GameScreen(Screen):
         cell = maze[position.row][position.column]
 
         return not bool(cell & wall)
+
+    def __is_opposite_direction(
+        self: "GameScreen",
+        first: Direction,
+        second: Direction,
+    ) -> bool:
+        opposite_directions = {
+            Direction.UP: Direction.DOWN,
+            Direction.DOWN: Direction.UP,
+            Direction.LEFT: Direction.RIGHT,
+            Direction.RIGHT: Direction.LEFT,
+        }
+
+        return opposite_directions.get(first) == second
+
+    def __is_moving_toward_position(
+        self: "GameScreen",
+        position: Position,
+        target: Position,
+        direction: Direction,
+    ) -> bool:
+        if direction == Direction.LEFT:
+            return position.x > target.x
+
+        if direction == Direction.RIGHT:
+            return position.x < target.x
+
+        if direction == Direction.UP:
+            return position.y > target.y
+
+        if direction == Direction.DOWN:
+            return position.y < target.y
+
+    def __move_player_towards(
+        self: "GameScreen",
+        player: PlayerModel,
+        target: Position,
+        distance: float,
+    ) -> tuple[float, bool]:
+        """Helper function, returning:
+         how many movement budget we have left on this frame
+         and have we reached the target location"""
+        if player.position is None:
+            return distance, False
+
+        remaining_distance = self.__distance_to_target(
+            position=player.position,
+            target=target,
+        )
+
+        if remaining_distance <= POSITION_EPSILON:
+            player.move_to(target)
+            return distance, True
+
+        step = min(distance, remaining_distance)
+
+        player.move_to(
+            player.position.moved(
+                direction=player.direction,
+                distance=step,
+            )
+        )
+
+        self.__pacman_sprite.play(animation=player.direction.name.lower())
+
+        distance -= step
+
+        if step + POSITION_EPSILON < remaining_distance:
+            return distance, False
+
+        player.move_to(target)
+
+        return distance, True
 
     def __render_pacman(
         self: "GameScreen",

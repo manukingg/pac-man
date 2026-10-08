@@ -682,6 +682,15 @@ class GameScreen(Screen):
     ) -> None:
         """Render every wall in the current maze."""
 
+        self.__render_42_cells(
+            display=display,
+            image=image,
+            maze=maze,
+            cell_size=cell_size,
+            offset_x=offset_x,
+            offset_y=offset_y,
+        )
+
         segments = self.__collect_wall_segments(
             maze=maze,
             cell_size=cell_size,
@@ -924,3 +933,29 @@ class GameScreen(Screen):
                 self.__player_size,
             ),
         )
+
+    def __render_42_cells(
+        self: "GameScreen",
+        display: GraphicsBackend,
+        image: Image,
+        maze: MazeGrid,
+        cell_size: int,
+        offset_x: int,
+        offset_y: int,
+    ) -> None:
+        for row_index, row in enumerate(maze):
+            for column_index, cell in enumerate(row):
+                if cell != 15:
+                    continue
+
+                x = offset_x + column_index * cell_size
+                y = offset_y + row_index * cell_size
+
+                display.draw_rect(
+                    image=image,
+                    x=x,
+                    y=y,
+                    width=cell_size,
+                    height=cell_size,
+                    color=self._WALL_COLOR,
+                )

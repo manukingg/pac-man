@@ -37,5 +37,4 @@ class MazeGeneratorService:
             [Wall(value) for value in row]
             for row in raw_maze
         ]
-        print(self.__generator._width, self.__generator._height)
         return grid

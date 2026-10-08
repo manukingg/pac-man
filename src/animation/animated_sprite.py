@@ -1,4 +1,4 @@
-from ..graphics import Image, AnimationClip
+from ..graphics import Image, AnimationClip, GraphicsBackend
 
 from typing import Mapping
 
@@ -109,3 +109,18 @@ class AnimatedSprite:
         self.__frame_index = frame_index
         self.__elapsed_time = 0.0
         self.__playing = False
+
+    def prepare_scale(
+        self: "AnimatedSprite",
+        display: GraphicsBackend,
+        size: tuple[int, int],
+    ) -> None:
+        width, height = size
+
+        for clip in self.__animations.values():
+            for frame in clip.frames:
+                display.prepare_scaled_image(
+                    image=frame,
+                    width=width,
+                    height=height,
+                )

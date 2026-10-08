@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, ConfigDict
 
 
 DEFAULT_LEVELS = [
-    {"level_number": 1, "width": "15", "height": "15"},
+    {"level_number": 1, "width": "20", "height": "10"},
     {"level_number": 2, "width": "20", "height": "18"},
     {"level_number": 3, "width": "20", "height": "20"},
     {"level_number": 4, "width": "25", "height": "20"},

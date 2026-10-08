@@ -22,13 +22,8 @@ from .screen import Screen
 Color = tuple[int, int, int]
 WallSegment = tuple[int, int, int, int]
 
-HUD_HEIGHT = 140
-PLAYER_SIZE = 48
-PLAYER_SPEED = 205.0
 POSITION_EPSILON = 0.001
 PELLET_COLOR: Color = (255, 220, 180)
-PELLET_SIZE = 6
-BIG_PELLET_SIZE = 18
 
 
 class GameScreen(Screen):
@@ -38,29 +33,53 @@ class GameScreen(Screen):
     _WALL_COLOR: Color = (32, 88, 255)
     _ERROR_COLOR: Color = (255, 64, 64)
 
-    _PADDING = 24
-    _ERROR_FONT_SIZE = 2
-
     def __init__(
         self: "GameScreen",
         pacman_sprite: AnimatedSprite,
     ) -> None:
         self.__pacman_sprite = pacman_sprite
         self.__maze_image: Image | None = None
+        self.__pellet_image: Image | None = None
 
         self.__cell_size: int | None = None
         self.__offset_x: int | None = None
         self.__offset_y: int | None = None
 
+        self.__hud_height: int | None = None
+        self.__player_size: int | None = None
+        self.__player_speed: float | None = None
+        self.__pellet_size: int | None = None
+        self.__prepared_player_size: int | None = None
+        self.__big_pellet_size: int | None = None
+
+        self.__padding: int | None = None
+        self.__error_font_size: int | None = None
+
     def handle_event(
         self: "GameScreen",
         event: GraphicsEvent,
         state: AppState,
-    ) -> None:
+        change_resolution: bool | None = None
+    ) -> str | None:
         """Handle gameplay input."""
+
+        if change_resolution:
+            self.__error_font_size = None
+            self.__player_speed = None
+            self.__player_size = None
+            self.__prepared_player_size = None
+            self.__pellet_size = None
+            self.__big_pellet_size = None
+            self.__padding = None
+            self.__hud_height = None
+            self.__pellet_image = None
+            return
 
         if event.type != EventType.KEY_DOWN:
             return
+
+        if event.key == Key.ESCAPE:
+            return "quit"
 
         game_state = state.game_state
 
@@ -147,75 +166,26 @@ class GameScreen(Screen):
             )
             return
 
-        row_count = len(maze)
-        column_count = len(maze[0])
-
-        cell_size = self.__calculate_cell_size(
-            image_width=image.width,
-            image_height=image.height,
-            row_count=row_count,
-            column_count=column_count,
-        )
-
-        if cell_size <= 0:
-            self.__render_error(
-                display=display,
-                image=image,
-                text="MAZE DOES NOT FIT THE WINDOW",
-            )
-            return
-
-        maze_width, maze_height = self.__get_maze_size(
-            column_count=column_count,
-            row_count=row_count,
-            cell_size=cell_size,
-        )
-
-        offset_x, offset_y = self.__get_offsets(
+        self.__initialize_layout(
             image=image,
-            maze_width=maze_width,
-            maze_height=maze_height,
+            maze=maze,
         )
 
-        self.__cell_size = cell_size
-        self.__offset_x = offset_x
-        self.__offset_y = offset_y
+        self.__ensure_pacman_scale(display)
+        self.__ensure_pellet_image(display)
 
-        if self.__maze_image is None:
-            self.__maze_image = display.new_image(
-                image.width,
-                image.height,
-            )
-
-            display.clear(
-                image=self.__maze_image,
-                color=self._BACKGROUND_COLOR,
-            )
-
-            self.__render_maze(
-                display=display,
-                image=self.__maze_image,
-                maze=maze,
-                cell_size=cell_size,
-                offset_x=offset_x,
-                offset_y=offset_y,
-            )
-
-        display.put_image(
-            target=image,
-            source=self.__maze_image,
-            x=0,
-            y=0,
+        self.__render_cached_maze(
+            display=display,
+            image=image,
+            maze=maze,
         )
 
-        self.__initialize_player_position(
-            player=game_state.player,
-        )
+        self.__initialize_player_position(player=game_state.player)
 
         self.__render_pellets(
             display=display,
             image=image,
-            pellets=game_state.pellets
+            pellets=game_state.pellets,
         )
 
         self.__render_pacman(
@@ -224,6 +194,91 @@ class GameScreen(Screen):
             player=game_state.player,
         )
 
+    def __initialize_layout(
+        self: "GameScreen",
+        image: Image,
+        maze: MazeGrid,
+    ) -> None:
+        row_count = len(maze)
+        column_count = len(maze[0])
+
+        old_cell_size = self.__cell_size
+        old_pellet_size = self.__pellet_size
+
+        self.__calculate_screen_metrics(image)
+
+        self.__cell_size = self.__calculate_cell_size(
+            image_width=image.width,
+            image_height=image.height,
+            row_count=row_count,
+            column_count=column_count,
+        )
+
+        self.__calculate_game_metrics()
+
+        if self.__cell_size != old_cell_size:
+            self.__maze_image = None
+
+        if self.__pellet_size != old_pellet_size:
+            self.__pellet_image = None
+
+        maze_width, maze_height = self.__get_maze_size(
+            column_count=column_count,
+            row_count=row_count,
+            cell_size=self.__cell_size,
+        )
+
+        self.__offset_x, self.__offset_y = self.__get_offsets(
+            image=image,
+            maze_width=maze_width,
+            maze_height=maze_height,
+        )
+
+    def __calculate_screen_metrics(
+        self: "GameScreen",
+        image: Image,
+    ) -> None:
+        shortest_side = min(
+            image.width,
+            image.height,
+        )
+
+        self.__padding = max(12, round(shortest_side * 0.025))
+
+        self.__hud_height = max(60, round(image.height * 0.12))
+
+        self.__error_font_size = max(2, round(shortest_side / 400))
+
+    def __calculate_cell_size(
+        self: "GameScreen",
+        image_width: int,
+        image_height: int,
+        row_count: int,
+        column_count: int,
+    ) -> int:
+        available_width = image_width - self.__padding * 2
+
+        available_height = (
+            image_height - self.__padding * 2 - self.__hud_height)
+
+        cell_width = available_width // column_count
+
+        cell_height = available_height // row_count
+
+        return min(cell_width, cell_height)
+
+    def __calculate_game_metrics(self: "GameScreen") -> None:
+        if self.__cell_size is None:
+            return
+
+        self.__player_size = max(8, round(self.__cell_size * 0.72))
+
+        self.__pellet_size = max(2, round(self.__cell_size * 0.16))
+
+        self.__big_pellet_size = max(4, round(self.__cell_size * 0.38))
+
+        self.__player_speed = self.__cell_size * 2.5
+
     def __render_pellets(
         self: "GameScreen",
         display: GraphicsBackend,
@@ -231,6 +286,11 @@ class GameScreen(Screen):
         pellets: set[GridPosition],
     ) -> None:
         """Render all remaining pellets."""
+        if self.__pellet_image is None:
+            return
+
+        if self.__pellet_size is None:
+            return
 
         for grid_position in pellets:
             center = self.__get_grid_position_center(
@@ -238,20 +298,18 @@ class GameScreen(Screen):
             )
 
             x = int(
-                center.x - PELLET_SIZE / 2
+                center.x - self.__pellet_size / 2
             )
 
             y = int(
-                center.y - PELLET_SIZE / 2
+                center.y - self.__pellet_size / 2
             )
 
-            display.draw_rect(
-                image=image,
+            display.put_image(
+                target=image,
+                source=self.__pellet_image,
                 x=x,
                 y=y,
-                width=PELLET_SIZE,
-                height=PELLET_SIZE,
-                color=PELLET_COLOR,
             )
 
     def __initialize_player_position(
@@ -282,7 +340,7 @@ class GameScreen(Screen):
             return
 
         distance = (
-            PLAYER_SPEED
+            self.__player_speed
             * player.speed_multiplier
             * delta_time
         )
@@ -506,19 +564,19 @@ class GameScreen(Screen):
             return
 
         player_x = int(
-            player.position.x - PLAYER_SIZE / 2
+            player.position.x - self.__player_size / 2
         )
 
         player_y = int(
-            player.position.y - PLAYER_SIZE / 2
+            player.position.y - self.__player_size / 2
         )
-
+        scale = (self.__player_size, self.__player_size)
         display.put_image(
             target=image,
             source=self.__pacman_sprite.current_image,
             x=player_x,
             y=player_y,
-            scale=(PLAYER_SIZE, PLAYER_SIZE),
+            scale=scale,
         )
 
     def __get_grid_position_center(
@@ -571,6 +629,46 @@ class GameScreen(Screen):
         return (
             abs(first.x - second.x) <= POSITION_EPSILON
             and abs(first.y - second.y) <= POSITION_EPSILON
+        )
+
+    def __render_cached_maze(
+        self: "GameScreen",
+        display: GraphicsBackend,
+        image: Image,
+        maze: MazeGrid,
+    ) -> None:
+        if (
+            self.__cell_size is None or
+            self.__offset_x is None or
+            self.__offset_y is None
+        ):
+            return
+
+        if self.__maze_image is None:
+            self.__maze_image = display.new_image(
+                image.width,
+                image.height
+            )
+
+            display.clear(
+                image=self.__maze_image,
+                color=self._BACKGROUND_COLOR
+            )
+
+            self.__render_maze(
+                display=display,
+                image=self.__maze_image,
+                maze=maze,
+                cell_size=self.__cell_size,
+                offset_x=self.__offset_x,
+                offset_y=self.__offset_y,
+            )
+
+        display.put_image(
+            target=image,
+            source=self.__maze_image,
+            x=0,
+            y=0,
         )
 
     def __render_maze(
@@ -742,41 +840,6 @@ class GameScreen(Screen):
             inner_thickness,
         )
 
-    def __calculate_cell_size(
-        self: "GameScreen",
-        image_width: int,
-        image_height: int,
-        row_count: int,
-        column_count: int,
-    ) -> int:
-        """Calculate the largest cell size fitting the image."""
-
-        available_width = (
-            image_width
-            - self._PADDING * 2
-        )
-
-        available_height = (
-            image_height
-            - self._PADDING * 2
-            - HUD_HEIGHT
-        )
-
-        cell_width = (
-            available_width
-            // column_count
-        )
-
-        cell_height = (
-            available_height
-            // row_count
-        )
-
-        return min(
-            cell_width,
-            cell_height,
-        )
-
     def __get_maze_size(
         self: "GameScreen",
         column_count: int,
@@ -803,7 +866,7 @@ class GameScreen(Screen):
             (
                 image.height
                 - maze_height
-                - HUD_HEIGHT
+                - self.__hud_height
             ) // 2,
         )
 
@@ -818,10 +881,46 @@ class GameScreen(Screen):
         display.write_text(
             text=text,
             image=image,
-            font_size=self._ERROR_FONT_SIZE,
+            font_size=self.__error_font_size,
             color=self._ERROR_COLOR,
             position=(
-                self._PADDING,
-                self._PADDING,
+                self.__padding,
+                self.__padding,
+            ),
+        )
+
+    def __ensure_pellet_image(
+        self: "GameScreen",
+        display: GraphicsBackend,
+    ) -> None:
+        if self.__pellet_image is not None:
+            return
+
+        if self.__pellet_size is None:
+            return
+
+        self.__pellet_image = display.new_image(
+            self.__pellet_size,
+            self.__pellet_size,
+
+        )
+
+        display.clear(image=self.__pellet_image, color=PELLET_COLOR)
+
+    def __ensure_pacman_scale(
+        self: "GameScreen",
+        display: "GraphicsBackend",
+    ) -> None:
+        if self.__player_size is None:
+            return
+
+        if self.__prepared_player_size == self.__player_size:
+            return
+
+        self.__pacman_sprite.prepare_scale(
+            display=display,
+            size=(
+                self.__player_size,
+                self.__player_size,
             ),
         )

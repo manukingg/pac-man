@@ -244,6 +244,20 @@ class MlxWrapper:
             )
             self._clear_image = None
 
+    def prepare_scaled_image(
+        self: "MlxWrapper",
+        image: Image,
+        width: int,
+        height: int,
+    ) -> None:
+        source = self._as_mlx_image(image)
+
+        self._get_scaled_image(
+            source=source,
+            width=width,
+            height=height,
+        )
+
     def load_image(
         self: "MlxWrapper",
         path: str | Path,

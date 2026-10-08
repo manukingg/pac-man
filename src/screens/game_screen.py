@@ -273,9 +273,9 @@ class GameScreen(Screen):
 
         self.__player_size = max(8, round(self.__cell_size * 0.72))
 
-        self.__pellet_size = max(2, round(self.__cell_size * 0.16))
+        self.__pellet_size = max(2, round(self.__cell_size * 0.10))
 
-        self.__big_pellet_size = max(4, round(self.__cell_size * 0.38))
+        self.__big_pellet_size = max(4, round(self.__cell_size * 0.25))
 
         self.__player_speed = self.__cell_size * 2.5
 
@@ -754,7 +754,17 @@ class GameScreen(Screen):
                 right = left + cell_size
                 bottom = top + cell_size
 
-                if cell & Wall.NORTH:
+                current_is_42 = self.__is_42_cell(
+                    maze=maze,
+                    row=row_index,
+                    column=column_index,
+                )
+
+                if (cell & Wall.NORTH and
+                    not (current_is_42 and self.__is_42_cell(
+                                               maze,
+                                               row_index-1,
+                                               column_index))):
                     segments.add(
                         self.__normalize_segment(
                             left,
@@ -764,7 +774,11 @@ class GameScreen(Screen):
                         )
                     )
 
-                if cell & Wall.EAST:
+                if (cell & Wall.EAST and
+                    not (current_is_42 and self.__is_42_cell(
+                                                maze,
+                                                row_index,
+                                                column_index + 1))):
                     segments.add(
                         self.__normalize_segment(
                             right,
@@ -774,7 +788,11 @@ class GameScreen(Screen):
                         )
                     )
 
-                if cell & Wall.SOUTH:
+                if (cell & Wall.SOUTH and
+                    not (current_is_42 and self.__is_42_cell(
+                                            maze,
+                                            row_index + 1,
+                                            column_index))):
                     segments.add(
                         self.__normalize_segment(
                             left,
@@ -784,7 +802,11 @@ class GameScreen(Screen):
                         )
                     )
 
-                if cell & Wall.WEST:
+                if (cell & Wall.WEST and
+                    not (current_is_42 and self.__is_42_cell(
+                        maze,
+                        row_index,
+                        column_index - 1))):
                     segments.add(
                         self.__normalize_segment(
                             left,
@@ -959,3 +981,17 @@ class GameScreen(Screen):
                     height=cell_size,
                     color=self._WALL_COLOR,
                 )
+
+    def __is_42_cell(
+        self: "GameScreen",
+        maze: MazeGrid,
+        row: int,
+        column: int,
+    ) -> bool:
+        if not (0 <= row < len(maze)):
+            return False
+
+        if not (0 <= column <= len(maze[0])):
+            return False
+
+        return maze[row][column] == 15

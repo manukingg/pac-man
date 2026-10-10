@@ -115,6 +115,11 @@ class GhostModel:
         self.mode = GhostMode.CHASE
         self.respawn_time_remaining = 0.0
 
+    def increase_speed(self: "GhostModel") -> None:
+        """Increase ghost's speed after respawn"""
+
+        self.speed_multiplier += 0.5
+
     def freeze(self: "GhostModel") -> None:
         """Freeze the ghost for cheat mode."""
 

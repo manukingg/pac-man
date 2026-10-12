@@ -3,6 +3,8 @@ from .maze_renderer import MazeRenderer
 from .player_controller import PlayerController
 from .game_layout import GameLayout
 from .player_renderer import PlayerRenderer
+from .maze_navigator import MazeNavigator
+
 from ...animation import AnimatedSprite
 from ...graphics import (
     Image,
@@ -39,7 +41,8 @@ class GameScreen(Screen):
         pacman_sprite: AnimatedSprite,
     ) -> None:
         self.__player_controller = PlayerController(
-            pacman_sprite=pacman_sprite
+            pacman_sprite=pacman_sprite,
+            maze_navigator=MazeNavigator(),
         )
         self.__player_renderer = PlayerRenderer(
             pacman_sprite=pacman_sprite

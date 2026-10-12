@@ -18,8 +18,8 @@ class GameStateFactory:
         self: "GameStateFactory",
         config: Config,
     ) -> None:
-        self.__config = config
-        self.__generator_service = MazeGeneratorService(config)
+        self.__config: Config = config
+        self.__generator_service: MazeGeneratorService | None = None
 
     def create(
         self: "GameStateFactory",
@@ -27,6 +27,10 @@ class GameStateFactory:
     ) -> GameState:
         """Create a fully initialized game state."""
 
+        self.__generator_service = MazeGeneratorService(
+            config=self.__config,
+            level=level,
+        )
         maze = self.__generator_service.generate()
         player = self.__create_player(level)
         ghosts = self.__create_ghosts(level)

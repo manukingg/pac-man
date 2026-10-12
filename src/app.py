@@ -15,10 +15,7 @@ from .screens import (
     resolution_to_text,
     parse_resolution_text,
 )
-from .models import (
-    Config,
-    Level,
-)
+from .models import (Config)
 from .factories import GameStateFactory
 from .graphics.events import EventType
 
@@ -135,8 +132,9 @@ class Application:
         }
 
         self._game_state_factory = GameStateFactory(config)
-        level = Level(level_number=1, width=20, height=20)
-        self._state.game_state = self._game_state_factory.create(level=level)
+        self._current_level = 0
+        self._state.game_state = self._game_state_factory.create(
+            config.levels[self._current_level])
 
         self._frame = self._display.new_image(self.width, self.height)
 

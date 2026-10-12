@@ -4,7 +4,7 @@
         {
             "level_number": 0,
             "width": "14",
-            "height": "14"
+            "height": "10"
         },
         {
             "level_number": 1,
@@ -60,7 +60,7 @@
     "points_per_pacgum": 9,
     "points_per_super_pacgum": 49,
     "points_per_ghost": 199,
-    "seed": "41",
+    "seed": "42",
     "level_max_time": 499,
     "window_width": 1920,
     "window_height": 1080

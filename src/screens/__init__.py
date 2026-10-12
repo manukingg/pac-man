@@ -1,6 +1,6 @@
 from .screen import Screen
 from .main_menu_screen import MainMenuScreen
-from .game_screen import GameScreen
+from .game_screen.game_screen import GameScreen
 from .resolutions import (
     resolutions,
     settings_resolutions,

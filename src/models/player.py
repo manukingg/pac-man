@@ -55,3 +55,6 @@ class PlayerModel:
         self.direction = Direction.NONE
         self.requested_direction = Direction.NONE
         self.alive = True
+
+    def reset_position(self: "PlayerModel") -> None:
+        self.position = None

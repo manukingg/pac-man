@@ -71,7 +71,7 @@ class Application:
             title="Pac-Man",
         )
 
-        pacman_animations = self.__load_animations(name="pacman")
+        pacman_animations = self.__load_pacman_animations()
 
         pacman_sprite = AnimatedSprite(
             animations=pacman_animations,
@@ -247,22 +247,22 @@ class Application:
     ) -> dict[str, dict[str, AnimatedSprite]]:
         animations = {
             "blinky": AnimatedSprite(
-                animations=self.__load_animations("blinky"),
+                animations=self.__load_ghost_animations("blinky"),
                 initial_animation="right",
                 playing=False,
             ),
             "pinky": AnimatedSprite(
-                self.__load_animations("pinky"),
+                self.__load_ghost_animations("pinky"),
                 initial_animation="left",
                 playing=False,
             ),
             "inky": AnimatedSprite(
-                self.__load_animations("inky"),
+                self.__load_ghost_animations("inky"),
                 initial_animation="right",
                 playing=False
             ),
             "clyde": AnimatedSprite(
-                self.__load_animations("clyde"),
+                self.__load_ghost_animations("clyde"),
                 initial_animation="left",
                 playing=False,
             )
@@ -270,9 +270,8 @@ class Application:
 
         return animations
 
-    def __load_animations(
+    def __load_pacman_animations(
         self: "Application",
-        name: str,
     ) -> dict[str, AnimationClip]:
 
         assets_path = Path("assets")
@@ -280,45 +279,49 @@ class Application:
         animations = {
             "right": self._display.load_animation(
                 paths=[
-                    assets_path / f"{name}-right/1.xpm",
-                    assets_path / f"{name}-right/2.xpm",
-                    assets_path / f"{name}-right/3.xpm",
-                    assets_path / f"{name}-right/2.xpm",
-                    assets_path / f"{name}-right/1.xpm",
+                    assets_path / "pacman-right/1.xpm",
+                    assets_path / "pacman-right/2.xpm",
+                    assets_path / "pacman-right/3.xpm",
+                    assets_path / "pacman-right/2.xpm",
+                    assets_path / "pacman-right/1.xpm",
 
                 ],
                 frame_duration=0.08
             ),
             "left": self._display.load_animation(
                 paths=[
-                    assets_path / f"{name}-left/3.xpm",
-                    assets_path / f"{name}-left/2.xpm",
-                    assets_path / f"{name}-left/1.xpm",
-                    assets_path / f"{name}-left/2.xpm",
-                    assets_path / f"{name}-left/3.xpm"
+                    assets_path / "pacman-left/3.xpm",
+                    assets_path / "pacman-left/2.xpm",
+                    assets_path / "pacman-left/1.xpm",
+                    assets_path / "pacman-left/2.xpm",
+                    assets_path / "pacman-left/3.xpm"
                 ],
                 frame_duration=0.08
             ),
             "up": self._display.load_animation(
                 paths=[
-                    assets_path / f"{name}-up/1.xpm",
-                    assets_path / f"{name}-up/2.xpm",
-                    assets_path / f"{name}-up/3.xpm",
-                    assets_path / f"{name}-up/2.xpm",
-                    assets_path / f"{name}-up/1.xpm",
+                    assets_path / "pacman-up/1.xpm",
+                    assets_path / "pacman-up/2.xpm",
+                    assets_path / "pacman-up/3.xpm",
+                    assets_path / "pacman-up/2.xpm",
+                    assets_path / "pacman-up/1.xpm",
                 ],
                 frame_duration=0.08
             ),
             "down": self._display.load_animation(
                 paths=[
-                    assets_path / f"{name}-down/1.xpm",
-                    assets_path / f"{name}-down/2.xpm",
-                    assets_path / f"{name}-down/3.xpm",
-                    assets_path / f"{name}-down/2.xpm",
-                    assets_path / f"{name}-down/1.xpm"
+                    assets_path / "pacman-down/1.xpm",
+                    assets_path / "pacman-down/2.xpm",
+                    assets_path / "pacman-down/3.xpm",
+                    assets_path / "pacman-down/2.xpm",
+                    assets_path / "pacman-down/1.xpm"
                 ],
                 frame_duration=0.08
             )
         }
 
         return animations
+    
+    def __load_ghost_animation(
+        self: "Application",
+    )

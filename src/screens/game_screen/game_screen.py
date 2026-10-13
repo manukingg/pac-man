@@ -128,14 +128,6 @@ class GameScreen(Screen):
             player_speed=self.__layout.player_speed,
         )
 
-        # ghosts = game_state.ghosts
-
-        # self.__update_ghosts_movement(
-        #     ghosts=ghosts,
-        #     maze=game_state.maze,
-        #     delta_time=delta_time,
-        # )
-
     def render(
         self: "GameScreen",
         display: GraphicsBackend,

@@ -1,4 +1,4 @@
-from .animated_sprite import AnimatedSprite
+from .animated_sprite import AnimatedSprite, AnimationClip
 
 
-__all__ = (AnimatedSprite)
+__all__ = (AnimatedSprite, AnimationClip)

@@ -2,7 +2,7 @@ import json
 
 from pathlib import Path
 
-from .animation import AnimatedSprite
+from .animation import AnimatedSprite, AnimationClip
 from .graphics import GraphicsBackend
 from .models import AppState, ScreenType
 from .screens import (
@@ -65,57 +65,13 @@ class Application:
             config=config,
         )
 
-        assets_path = Path("assets")
-
         self._display = GraphicsBackend(
             width=self.width,
             height=self.height,
             title="Pac-Man",
         )
 
-        pacman_animations = {
-            "right": self._display.load_animation(
-                paths=[
-                    assets_path / "pacman-right/1.xpm",
-                    assets_path / "pacman-right/2.xpm",
-                    assets_path / "pacman-right/3.xpm",
-                    assets_path / "pacman-right/2.xpm",
-                    assets_path / "pacman-right/1.xpm",
-
-                ],
-                frame_duration=0.08
-            ),
-            "left": self._display.load_animation(
-                paths=[
-                    assets_path / "pacman-left/3.xpm",
-                    assets_path / "pacman-left/2.xpm",
-                    assets_path / "pacman-left/1.xpm",
-                    assets_path / "pacman-left/2.xpm",
-                    assets_path / "pacman-left/3.xpm"
-                ],
-                frame_duration=0.08
-            ),
-            "up": self._display.load_animation(
-                paths=[
-                    assets_path / "pacman-up/1.xpm",
-                    assets_path / "pacman-up/2.xpm",
-                    assets_path / "pacman-up/3.xpm",
-                    assets_path / "pacman-up/2.xpm",
-                    assets_path / "pacman-up/1.xpm",
-                ],
-                frame_duration=0.08
-            ),
-            "down": self._display.load_animation(
-                paths=[
-                    assets_path / "pacman-down/1.xpm",
-                    assets_path / "pacman-down/2.xpm",
-                    assets_path / "pacman-down/3.xpm",
-                    assets_path / "pacman-down/2.xpm",
-                    assets_path / "pacman-down/1.xpm"
-                ],
-                frame_duration=0.08
-            )
-        }
+        pacman_animations = self.__load_animations(name="pacman")
 
         pacman_sprite = AnimatedSprite(
             animations=pacman_animations,
@@ -123,12 +79,17 @@ class Application:
             playing=False
         )
 
+        ghosts_sprites = self.__get_ghosts_sprites()
+
         self._screens: dict[ScreenType, Screen] = {
             ScreenType.MAIN_MENU: MainMenuScreen(
                 resolution_options=resolution_options,
                 current_resolution=current_resolution,
             ),
-            ScreenType.GAME: GameScreen(pacman_sprite=pacman_sprite)
+            ScreenType.GAME: GameScreen(
+                pacman_sprite=pacman_sprite,
+                ghosts_sprites=ghosts_sprites,
+            )
         }
 
         self._game_state_factory = GameStateFactory(config)
@@ -280,3 +241,84 @@ class Application:
             self._frame_needs_rebuild = True
             self._save_user_preferences()
             return
+
+    def __get_ghosts_sprites(
+        self: "Application"
+    ) -> dict[str, dict[str, AnimatedSprite]]:
+        animations = {
+            "blinky": AnimatedSprite(
+                animations=self.__load_animations("blinky"),
+                initial_animation="right",
+                playing=False,
+            ),
+            "pinky": AnimatedSprite(
+                self.__load_animations("pinky"),
+                initial_animation="left",
+                playing=False,
+            ),
+            "inky": AnimatedSprite(
+                self.__load_animations("inky"),
+                initial_animation="right",
+                playing=False
+            ),
+            "clyde": AnimatedSprite(
+                self.__load_animations("clyde"),
+                initial_animation="left",
+                playing=False,
+            )
+        }
+
+        return animations
+
+    def __load_animations(
+        self: "Application",
+        name: str,
+    ) -> dict[str, AnimationClip]:
+
+        assets_path = Path("assets")
+
+        animations = {
+            "right": self._display.load_animation(
+                paths=[
+                    assets_path / f"{name}-right/1.xpm",
+                    assets_path / f"{name}-right/2.xpm",
+                    assets_path / f"{name}-right/3.xpm",
+                    assets_path / f"{name}-right/2.xpm",
+                    assets_path / f"{name}-right/1.xpm",
+
+                ],
+                frame_duration=0.08
+            ),
+            "left": self._display.load_animation(
+                paths=[
+                    assets_path / f"{name}-left/3.xpm",
+                    assets_path / f"{name}-left/2.xpm",
+                    assets_path / f"{name}-left/1.xpm",
+                    assets_path / f"{name}-left/2.xpm",
+                    assets_path / f"{name}-left/3.xpm"
+                ],
+                frame_duration=0.08
+            ),
+            "up": self._display.load_animation(
+                paths=[
+                    assets_path / f"{name}-up/1.xpm",
+                    assets_path / f"{name}-up/2.xpm",
+                    assets_path / f"{name}-up/3.xpm",
+                    assets_path / f"{name}-up/2.xpm",
+                    assets_path / f"{name}-up/1.xpm",
+                ],
+                frame_duration=0.08
+            ),
+            "down": self._display.load_animation(
+                paths=[
+                    assets_path / f"{name}-down/1.xpm",
+                    assets_path / f"{name}-down/2.xpm",
+                    assets_path / f"{name}-down/3.xpm",
+                    assets_path / f"{name}-down/2.xpm",
+                    assets_path / f"{name}-down/1.xpm"
+                ],
+                frame_duration=0.08
+            )
+        }
+
+        return animations

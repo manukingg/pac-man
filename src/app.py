@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .animation import AnimatedSprite, AnimationClip
 from .graphics import GraphicsBackend
-from .models import AppState, ScreenType
+from .models import AppState, ScreenType, GhostAssets, GhostImages
 from .screens import (
     Screen,
     MainMenuScreen,
@@ -79,7 +79,7 @@ class Application:
             playing=False
         )
 
-        ghosts_sprites = self.__get_ghosts_sprites()
+        ghosts_sprites = self.__load_ghosts_frames()
 
         self._screens: dict[ScreenType, Screen] = {
             ScreenType.MAIN_MENU: MainMenuScreen(
@@ -241,87 +241,3 @@ class Application:
             self._frame_needs_rebuild = True
             self._save_user_preferences()
             return
-
-    def __get_ghosts_sprites(
-        self: "Application"
-    ) -> dict[str, dict[str, AnimatedSprite]]:
-        animations = {
-            "blinky": AnimatedSprite(
-                animations=self.__load_ghost_animations("blinky"),
-                initial_animation="right",
-                playing=False,
-            ),
-            "pinky": AnimatedSprite(
-                self.__load_ghost_animations("pinky"),
-                initial_animation="left",
-                playing=False,
-            ),
-            "inky": AnimatedSprite(
-                self.__load_ghost_animations("inky"),
-                initial_animation="right",
-                playing=False
-            ),
-            "clyde": AnimatedSprite(
-                self.__load_ghost_animations("clyde"),
-                initial_animation="left",
-                playing=False,
-            )
-        }
-
-        return animations
-
-    def __load_pacman_animations(
-        self: "Application",
-    ) -> dict[str, AnimationClip]:
-
-        assets_path = Path("assets")
-
-        animations = {
-            "right": self._display.load_animation(
-                paths=[
-                    assets_path / "pacman-right/1.xpm",
-                    assets_path / "pacman-right/2.xpm",
-                    assets_path / "pacman-right/3.xpm",
-                    assets_path / "pacman-right/2.xpm",
-                    assets_path / "pacman-right/1.xpm",
-
-                ],
-                frame_duration=0.08
-            ),
-            "left": self._display.load_animation(
-                paths=[
-                    assets_path / "pacman-left/3.xpm",
-                    assets_path / "pacman-left/2.xpm",
-                    assets_path / "pacman-left/1.xpm",
-                    assets_path / "pacman-left/2.xpm",
-                    assets_path / "pacman-left/3.xpm"
-                ],
-                frame_duration=0.08
-            ),
-            "up": self._display.load_animation(
-                paths=[
-                    assets_path / "pacman-up/1.xpm",
-                    assets_path / "pacman-up/2.xpm",
-                    assets_path / "pacman-up/3.xpm",
-                    assets_path / "pacman-up/2.xpm",
-                    assets_path / "pacman-up/1.xpm",
-                ],
-                frame_duration=0.08
-            ),
-            "down": self._display.load_animation(
-                paths=[
-                    assets_path / "pacman-down/1.xpm",
-                    assets_path / "pacman-down/2.xpm",
-                    assets_path / "pacman-down/3.xpm",
-                    assets_path / "pacman-down/2.xpm",
-                    assets_path / "pacman-down/1.xpm"
-                ],
-                frame_duration=0.08
-            )
-        }
-
-        return animations
-    
-    def __load_ghost_animation(
-        self: "Application",
-    )

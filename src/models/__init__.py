@@ -5,6 +5,7 @@ from .player import PlayerModel
 from .ghost import GhostModel, GhostKind
 from .maze import Wall, MazeGrid
 from .common import GridPosition, Direction, Position
+from .ghost_assets import GhostAssets, GhostImages
 
 
 __all__ = (
@@ -20,5 +21,7 @@ __all__ = (
     GridPosition,
     GhostKind,
     Direction,
-    Position
+    Position,
+    GhostAssets,
+    GhostImages,
 )

@@ -4,6 +4,7 @@ from .player_controller import PlayerController
 from .game_layout import GameLayout
 from .player_renderer import PlayerRenderer
 from .maze_navigator import MazeNavigator
+from .ghosts_renderer import GhostsRenderer
 
 from ...animation import AnimatedSprite
 from ...graphics import (
@@ -17,7 +18,8 @@ from ...models import (
     AppState,
     Direction,
     MazeGrid,
-    GhostModel
+    GhostModel,
+    GhostAssets
 )
 
 from ..screen import Screen
@@ -39,10 +41,14 @@ class GameScreen(Screen):
     def __init__(
         self: "GameScreen",
         pacman_sprite: AnimatedSprite,
+        ghosts_sprites: GhostAssets,
     ) -> None:
         self.__player_controller = PlayerController(
             pacman_sprite=pacman_sprite,
             maze_navigator=MazeNavigator(),
+        )
+        self.__ghosts_renderer = GhostsRenderer(
+            ghosts_sprites=ghosts_sprites,
         )
         self.__player_renderer = PlayerRenderer(
             pacman_sprite=pacman_sprite

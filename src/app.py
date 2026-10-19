@@ -2,9 +2,10 @@ import json
 
 from pathlib import Path
 
-from .animation import AnimatedSprite, AnimationClip
+from .animation import AnimatedSprite
 from .graphics import GraphicsBackend
-from .models import AppState, ScreenType, GhostAssets, GhostImages
+from .models import AppState, ScreenType
+from .sprites_loader import SpritesLoader
 from .screens import (
     Screen,
     MainMenuScreen,
@@ -71,7 +72,8 @@ class Application:
             title="Pac-Man",
         )
 
-        pacman_animations = self.__load_pacman_animations()
+        self.__sprites_loader = SpritesLoader(self._display)
+        pacman_animations = self.__sprites_loader.load_pacman_animations()
 
         pacman_sprite = AnimatedSprite(
             animations=pacman_animations,
@@ -79,7 +81,7 @@ class Application:
             playing=False
         )
 
-        ghosts_sprites = self.__load_ghosts_frames()
+        ghosts_sprites = self.__sprites_loader.load_ghosts_sprites()
 
         self._screens: dict[ScreenType, Screen] = {
             ScreenType.MAIN_MENU: MainMenuScreen(

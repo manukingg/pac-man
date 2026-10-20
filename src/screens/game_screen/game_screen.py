@@ -5,6 +5,7 @@ from .game_layout import GameLayout
 from .player_renderer import PlayerRenderer
 from .maze_navigator import MazeNavigator
 from .ghosts_renderer import GhostsRenderer
+from .ghosts_controller import GhostsController
 
 from ...animation import AnimatedSprite
 from ...graphics import (
@@ -18,7 +19,6 @@ from ...models import (
     AppState,
     Direction,
     MazeGrid,
-    GhostModel,
     GhostAssets
 )
 
@@ -43,9 +43,14 @@ class GameScreen(Screen):
         pacman_sprite: AnimatedSprite,
         ghosts_sprites: GhostAssets,
     ) -> None:
+        self.__maze_navigator = MazeNavigator()
+        self.__ghosts_controller = GhostsController(
+            ghosts_sprites=ghosts_sprites,
+            maze_navigator=self.__maze_navigator,
+        )
         self.__player_controller = PlayerController(
             pacman_sprite=pacman_sprite,
-            maze_navigator=MazeNavigator(),
+            maze_navigator=self.__maze_navigator,
         )
         self.__ghosts_renderer = GhostsRenderer(
             ghosts_sprites=ghosts_sprites,
@@ -190,6 +195,12 @@ class GameScreen(Screen):
             layout=self.__layout,
         )
 
+        self.__ghosts_controller.initialize_ghosts_position(
+            ghosts=game_state.ghosts,
+            maze=maze,
+            layout=self.__layout,
+        )
+
         if self.__layout.pellet_size is not None:
             self.__pellet_renderer.render(
                 display=display,
@@ -206,11 +217,13 @@ class GameScreen(Screen):
                 player_size=self.__layout.player_size,
             )
 
-        self.__render_ghosts(
-            display=display,
-            image=image,
-            ghosts=game_state.ghosts,
-        )
+        if self.__layout.ghost_size is not None:
+            self.__ghosts_renderer.render(
+                display=display,
+                image=image,
+                ghosts=game_state.ghosts,
+                ghosts_size=self.__layout.player_size,
+            )
 
     def __initialize_layout(
         self: "GameScreen",
@@ -271,11 +284,3 @@ class GameScreen(Screen):
                 self.__layout.padding,
             ),
         )
-
-    def __render_ghosts(
-        self: "GameScreen",
-        display: GraphicsBackend,
-        image: Image,
-        ghosts: list[GhostModel],
-    ):
-        pass

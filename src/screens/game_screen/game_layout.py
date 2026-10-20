@@ -20,6 +20,8 @@ class GameLayout:
     pellet_size: int | None = None
     big_pellet_size: int | None = None
 
+    ghost_size: int | None = None
+
     def update(
         self: "GameLayout",
         image: Image,
@@ -46,6 +48,7 @@ class GameLayout:
             self.player_speed = None
             self.pellet_size = None
             self.big_pellet_size = None
+            self.ghost_size = None
 
             return False
 
@@ -104,6 +107,8 @@ class GameLayout:
         self.pellet_size = None
         self.big_pellet_size = None
 
+        self.ghost_size = None
+
     def update_screen_metrics(
         self: "GameLayout",
         image: Image,
@@ -147,6 +152,8 @@ class GameLayout:
             return
 
         self.player_size = max(8, round(self.cell_size * 0.72))
+
+        self.ghost_size = max(7, round(self.cell_size * 0.6))
 
         self.pellet_size = max(2, round(self.cell_size * 0.10))
 

@@ -38,6 +38,10 @@ class AnimatedSprite:
     def is_playing(self: "AnimatedSprite") -> bool:
         return self.__playing
 
+    @property
+    def get_current_animation_images(self: "AnimatedSprite") -> tuple[Image]:
+        return self.__animations.get(self.current_animation).frames
+
     def play(
         self: "AnimatedSprite",
         animation: str,

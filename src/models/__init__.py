@@ -2,7 +2,7 @@ from .state import GameState, AppState
 from .screen import ScreenType
 from .config_model import Config, Level
 from .player import PlayerModel
-from .ghost import GhostModel, GhostKind
+from .ghost import GhostModel, GhostKind, GhostMode
 from .maze import Wall, MazeGrid
 from .common import GridPosition, Direction, Position
 from .ghost_assets import GhostAssets, GhostImages
@@ -24,4 +24,5 @@ __all__ = (
     Position,
     GhostAssets,
     GhostImages,
+    GhostMode,
 )

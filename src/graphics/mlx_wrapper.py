@@ -48,6 +48,7 @@ class MlxWrapper:
         self._height = height
         self._title = title
         self._frame_callback: FrameCallback | None = None
+        self._loop_error: BaseException | None = None
         self._previous_frame_time = 0.0
         self._target_frame_time = 0.0
 
@@ -84,12 +85,18 @@ class MlxWrapper:
             None,
         )
 
+        self._loop_error = None
+
         self._mlx.mlx_do_key_autorepeatoff(self._mlx_ptr)
 
         try:
             self._mlx.mlx_loop(self._mlx_ptr)
         finally:
             self._mlx.mlx_do_key_autorepeaton(self._mlx_ptr)
+        if self._loop_error is not None:
+            error = self._loop_error
+            self._loop_error = None
+            raise error
 
     def draw_line(
         self: "MlxWrapper",
@@ -541,9 +548,14 @@ class MlxWrapper:
 
         self._previous_frame_time = current_time
 
-        should_continue = self._frame_callback(delta_time)
+        try:
+            should_continue = self._frame_callback(delta_time)
 
-        if not should_continue:
+            if not should_continue:
+                self._mlx.mlx_loop_exit(self._mlx_ptr)
+
+        except BaseException as error:
+            self._loop_error = error
             self._mlx.mlx_loop_exit(self._mlx_ptr)
 
         return 0

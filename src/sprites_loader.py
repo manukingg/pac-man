@@ -1,7 +1,7 @@
-import Path
+from pathlib import Path
 
 from .graphics import GraphicsBackend
-from .animation import AnimationClip
+from .animation import AnimationClip, AnimatedSprite
 from .models import GhostImages, GhostAssets, GhostKind, Direction
 
 
@@ -17,15 +17,21 @@ class SpritesLoader:
             GhostKind.PINKY: self.__load_chase_mode(assets_path, "pinky"),
             GhostKind.CLYDE: self.__load_chase_mode(assets_path, "clyde"),
         }
+        frightened = self._display.load_image(assets_path / "feared_1.xpm")
         return GhostAssets(
             ghosts=ghosts,
-            frightened=self._display.load_image(assets_path / "feared_1.xpm"),
-            frightened_warning=AnimationClip(
-                frames=(self._display.load_image(assets_path / "feared_1.xpm"),
-                        self._display.load_image(assets_path / "feared_2.xpm")
-                        ),
-                frame_duration=0.2,
-                loop=True,
+            frightened=frightened,
+            frightened_warning=AnimatedSprite(
+                animations={"all": self._display.load_animation(
+                    paths=[
+                        assets_path / "feared_1.xpm",
+                        assets_path / "feared_2.xpm"
+                        ],
+                    frame_duration=1,
+                    loop=True,
+                )},
+                initial_animation="all",
+                playing=True,
             ),
             eaten={
                 Direction.UP: self._display.load_image(
@@ -93,17 +99,19 @@ class SpritesLoader:
 
     def __load_chase_mode(
         self: "SpritesLoader",
-        name: str, assets_path: Path
+        assets_path: Path,
+        name: str,
     ) -> GhostImages:
+        ghost_path = assets_path / name
         return GhostImages(
             chase={
                     Direction.UP: self._display.load_image(
-                        assets_path / f"{name}/{name}_up.xpm"),
+                        ghost_path / f"{name}_up.xpm"),
                     Direction.DOWN: self._display.load_image(
-                        assets_path / f"{name}/{name}_down.xpm"),
+                        ghost_path / f"{name}_down.xpm"),
                     Direction.RIGHT: self._display.load_image(
-                        assets_path / f"{name}/{name}_right.xpm"),
+                        ghost_path / f"{name}_right.xpm"),
                     Direction.LEFT: self._display.load_image(
-                        assets_path / f"{name}/{name}_left.xpm")
+                        ghost_path / f"{name}_left.xpm")
                 }
             )

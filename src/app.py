@@ -108,9 +108,6 @@ class Application:
         try:
             self._display.start_loop(self._run_frame)
 
-        except Exception as e:
-            print(e)
-
         finally:
             self._display.quit()
 

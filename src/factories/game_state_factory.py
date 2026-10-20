@@ -6,7 +6,8 @@ from ..models import (
     GridPosition,
     Level,
     PlayerModel,
-    MazeGrid
+    MazeGrid,
+    Direction
 )
 from ..services import MazeGeneratorService
 
@@ -98,6 +99,7 @@ class GameStateFactory:
                     kind=kind,
                     grid_position=spawn_position,
                     spawn_position=spawn_position,
+                    direction=Direction.LEFT
                 )
             )
 

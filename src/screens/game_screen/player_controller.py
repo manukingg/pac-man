@@ -25,13 +25,12 @@ class PlayerController:
         self: "PlayerController",
         player: PlayerModel,
         maze: MazeGrid,
-        pellets: set[GridPosition],
         delta_time: float,
         layout: GameLayout,
         player_speed: float,
-    ) -> None:
+    ) -> list[GridPosition]:
         if player.position is None:
-            return
+            return []
 
         distance = (
             player_speed
@@ -39,15 +38,16 @@ class PlayerController:
             * delta_time
         )
 
-        self.__update_player_movement(
+        reached_cells = self.__update_player_movement(
             player=player,
             maze=maze,
-            pellets=pellets,
             distance=distance,
             layout=layout,
         )
-
+        # !!!! TAKE ALL GRAPHICS TO RENDERER, THIS CLASS ONLY CONTROLLING !!!!
         self.__pacman_sprite.update(delta_time)
+        ###################################################################
+        return reached_cells
 
     def initialize_player_position(
         self: "PlayerController",
@@ -69,14 +69,14 @@ class PlayerController:
         self: "PlayerController",
         player: PlayerModel,
         maze: MazeGrid,
-        pellets: set[GridPosition],
         distance: float,
         layout: GameLayout,
-    ) -> None:
+    ) -> list[GridPosition]:
         """Move Pac-Man continuously through the maze."""
+        reached_cells: list[GridPosition] = []
 
         if player.position is None:
-            return
+            return reached_cells
 
         while distance > POSITION_EPSILON:
             current_cell_center = layout.get_grid_position_center(
@@ -84,7 +84,7 @@ class PlayerController:
             )
 
             if (
-                not self.__positions_equal(
+                not self.__maze_navigator.positions_equal(
                     player.position,
                     current_cell_center,
                 )
@@ -95,7 +95,7 @@ class PlayerController:
             ):
                 player.change_direction(player.requested_direction)
 
-            if self.__positions_equal(
+            if self.__maze_navigator.positions_equal(
                 player.position,
                 current_cell_center,
             ):
@@ -116,9 +116,9 @@ class PlayerController:
                 ):
                     player.change_direction(Direction.NONE)
                     self.__pacman_sprite.stop()
-                    return
+                    return reached_cells
 
-            if self.__is_moving_toward_position(
+            if self.__maze_navigator.is_moving_toward_position(
                 position=player.position,
                 target=current_cell_center,
                 direction=player.direction,
@@ -136,7 +136,7 @@ class PlayerController:
 
             if player.direction == Direction.NONE:
                 self.__pacman_sprite.stop()
-                return
+                return reached_cells
 
             target_grid_position = player.grid_position.moved(
                 player.direction
@@ -156,9 +156,9 @@ class PlayerController:
                 break
 
             player.move_to_grid(target_grid_position)
+            reached_cells.append(target_grid_position)
 
-            if target_grid_position in pellets:
-                pellets.remove(target_grid_position)
+        return reached_cells
 
     def __try_change_direction(
         self: "PlayerController",
@@ -186,34 +186,7 @@ class PlayerController:
         first: Direction,
         second: Direction,
     ) -> bool:
-        opposite_directions = {
-            Direction.UP: Direction.DOWN,
-            Direction.DOWN: Direction.UP,
-            Direction.LEFT: Direction.RIGHT,
-            Direction.RIGHT: Direction.LEFT,
-        }
-
-        return opposite_directions.get(first) == second
-
-    def __is_moving_toward_position(
-        self: "PlayerController",
-        position: Position,
-        target: Position,
-        direction: Direction,
-    ) -> bool:
-        if direction == Direction.LEFT:
-            return position.x > target.x
-
-        if direction == Direction.RIGHT:
-            return position.x < target.x
-
-        if direction == Direction.UP:
-            return position.y > target.y
-
-        if direction == Direction.DOWN:
-            return position.y < target.y
-
-        return False
+        return first.reversed() == second
 
     def __move_player_towards(
         self: "PlayerController",
@@ -227,7 +200,7 @@ class PlayerController:
         if player.position is None:
             return distance, False
 
-        remaining_distance = self.__distance_to_target(
+        remaining_distance = self.__maze_navigator.distance_to_target(
             position=player.position,
             target=target,
         )
@@ -255,27 +228,3 @@ class PlayerController:
         player.move_to(target)
 
         return distance, True
-
-    def __distance_to_target(
-        self: "PlayerController",
-        position: Position,
-        target: Position,
-    ) -> float:
-        """Return axis-aligned distance to the target."""
-
-        return (
-            abs(target.x - position.x)
-            + abs(target.y - position.y)
-        )
-
-    def __positions_equal(
-        self: "PlayerController",
-        first: Position,
-        second: Position,
-    ) -> bool:
-        """Compare positions using floating-point tolerance."""
-
-        return (
-            abs(first.x - second.x) <= POSITION_EPSILON
-            and abs(first.y - second.y) <= POSITION_EPSILON
-        )

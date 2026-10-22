@@ -18,9 +18,10 @@ class GameLayout:
     player_speed: float | None = None
 
     pellet_size: int | None = None
-    big_pellet_size: int | None = None
+    power_pellet_size: int | None = None
 
     ghost_size: int | None = None
+    ghosts_speed: float | None = None
 
     def update(
         self: "GameLayout",
@@ -47,8 +48,9 @@ class GameLayout:
             self.player_size = None
             self.player_speed = None
             self.pellet_size = None
-            self.big_pellet_size = None
+            self.power_pellet_size = None
             self.ghost_size = None
+            self.ghosts_speed = None
 
             return False
 
@@ -105,9 +107,10 @@ class GameLayout:
         self.player_speed = None
 
         self.pellet_size = None
-        self.big_pellet_size = None
+        self.power_pellet_size = None
 
         self.ghost_size = None
+        self.ghosts_speed = None
 
     def update_screen_metrics(
         self: "GameLayout",
@@ -157,9 +160,11 @@ class GameLayout:
 
         self.pellet_size = max(2, round(self.cell_size * 0.10))
 
-        self.big_pellet_size = max(4, round(self.cell_size * 0.25))
+        self.power_pellet_size = max(4, round(self.cell_size * 0.35))
 
         self.player_speed = self.cell_size * 2.5
+
+        self.ghosts_speed = self.cell_size * 2.2
 
     def __get_maze_size(
         self: "GameLayout",

@@ -6,6 +6,7 @@ from .player_renderer import PlayerRenderer
 from .maze_navigator import MazeNavigator
 from .ghosts_renderer import GhostsRenderer
 from .ghosts_controller import GhostsController
+from .game_rules_controller import GameRulesController
 
 from ...animation import AnimatedSprite
 from ...graphics import (
@@ -19,7 +20,8 @@ from ...models import (
     AppState,
     Direction,
     MazeGrid,
-    GhostAssets
+    GhostAssets,
+    GameRules,
 )
 
 from ..screen import Screen
@@ -42,10 +44,10 @@ class GameScreen(Screen):
         self: "GameScreen",
         pacman_sprite: AnimatedSprite,
         ghosts_sprites: GhostAssets,
+        rules: GameRules,
     ) -> None:
         self.__maze_navigator = MazeNavigator()
         self.__ghosts_controller = GhostsController(
-            ghosts_sprites=ghosts_sprites,
             maze_navigator=self.__maze_navigator,
         )
         self.__player_controller = PlayerController(
@@ -66,6 +68,8 @@ class GameScreen(Screen):
             self._WALL_COLOR,
             self._FT_COLOR,
         )
+
+        self.__game_rules_controller = GameRulesController(rules=rules)
 
         self.__layout = GameLayout()
 
@@ -130,13 +134,37 @@ class GameScreen(Screen):
         if self.__layout.player_speed is None:
             return
 
-        self.__player_controller.update(
+        if game_state.power_pellets is None or game_state.pellets is None:
+            return
+
+        reached_cells = self.__player_controller.update(
             player=game_state.player,
             maze=game_state.maze,
-            pellets=game_state.pellets,
             delta_time=delta_time,
             layout=self.__layout,
             player_speed=self.__layout.player_speed,
+        )
+
+        self.__ghosts_controller.update(
+            ghosts=game_state.ghosts,
+            player=game_state.player,
+            maze=game_state.maze,
+            delta_time=delta_time,
+            ghosts_speed=self.__layout.ghosts_speed,
+            layout=self.__layout,
+        )
+
+        self.__game_rules_controller.update(
+            game_state=game_state,
+            reached_cells=reached_cells,
+            delta_time=delta_time,
+        )
+
+        self.__pellet_renderer.update(delta_time=delta_time)
+
+        self.__ghosts_renderer.update(
+            ghosts=game_state.ghosts,
+            delta_time=delta_time,
         )
 
     def render(
@@ -206,6 +234,7 @@ class GameScreen(Screen):
                 display=display,
                 image=image,
                 pellets=game_state.pellets,
+                power_pellets=game_state.power_pellets,
                 layout=self.__layout,
             )
 

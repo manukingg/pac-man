@@ -27,7 +27,7 @@ class SpritesLoader:
                         assets_path / "feared_1.xpm",
                         assets_path / "feared_2.xpm"
                         ],
-                    frame_duration=1,
+                    frame_duration=0.3,
                     loop=True,
                 )},
                 initial_animation="all",

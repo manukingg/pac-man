@@ -9,6 +9,7 @@ class GhostsRenderer:
     ) -> None:
         self.__ghost_sprites: GhostAssets = ghosts_sprites
         self.__prepared_scale: int | None = None
+        self.__warning_active: bool = False
 
     def render(
         self: "GhostsRenderer",
@@ -38,15 +39,33 @@ class GhostsRenderer:
                 scale=(ghosts_size, ghosts_size),
             )
 
+    def update(
+        self: "GhostsRenderer",
+        ghosts: list[GhostModel],
+        delta_time: float,
+    ) -> None:
+        warning_active = any(
+            ghost.mode == GhostMode.FRIGHTENED_WARNING
+            for ghost in ghosts
+        )
+
+        if warning_active and not self.__warning_active:
+            self.__ghost_sprites.frightened_warning.reset()
+
+        if warning_active:
+            self.__ghost_sprites.frightened_warning.update(delta_time)
+
+        self.__warning_active = warning_active
+
     def __choose_ghost_sprite(
         self: "GhostsRenderer",
         ghost: GhostModel,
     ) -> Image | None:
         if ghost.mode == GhostMode.FRIGHTENED:
-            if 0 < ghost.frightened_time_remaining < 1:
-                return self.__ghost_sprites.frightened_warning.current_image
-
             return self.__ghost_sprites.frightened
+
+        if ghost.mode == GhostMode.FRIGHTENED_WARNING:
+            return self.__ghost_sprites.frightened_warning.current_image
 
         if ghost.direction == Direction.NONE:
             return None

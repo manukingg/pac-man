@@ -35,7 +35,8 @@ class GameStateFactory:
         maze = self.__generator_service.generate()
         player = self.__create_player(level)
         ghosts = self.__create_ghosts(level)
-        pellets = self.__create_pellets(maze)
+        power_pellets = self.__create_power_pellets(maze)
+        pellets = self.__create_pellets(maze, power_pellets, player)
 
         return GameState(
             maze=maze,
@@ -45,7 +46,8 @@ class GameStateFactory:
             lives=self.__config.lives,
             level=level.level_number,
             remaining_time=float(self.__config.level_max_time),
-            pellets=pellets
+            pellets=pellets,
+            power_pellets=power_pellets,
         )
 
     def __create_player(
@@ -73,19 +75,19 @@ class GameStateFactory:
         spawn_positions = {
             GhostKind.BLINKY: GridPosition(
                 row=0,
-                column=0,
+                column=level.width - 1,
             ),
             GhostKind.PINKY: GridPosition(
                 row=0,
-                column=level.width - 1,
+                column=0,
             ),
             GhostKind.INKY: GridPosition(
                 row=level.height - 1,
-                column=0,
+                column=level.width - 1,
             ),
             GhostKind.CLYDE: GridPosition(
                 row=level.height - 1,
-                column=level.width - 1,
+                column=0,
             ),
         }
 
@@ -107,11 +109,27 @@ class GameStateFactory:
 
     def __create_pellets(
         self: "GameStateFactory",
-        maze: MazeGrid
+        maze: MazeGrid,
+        power_pellets: set[GridPosition],
+        player: PlayerModel,
     ) -> set[GridPosition]:
         pellets: set[GridPosition] = set()
+
         for row_index, row in enumerate(maze):
             for col_index, cell in enumerate(row):
-                if cell != 15:
-                    pellets.add(GridPosition(row=row_index, column=col_index))
+                position = GridPosition(row=row_index, column=col_index)
+                if cell != 15 and position not in power_pellets:
+                    pellets.add(position)
+        pellets.discard(player.grid_position)
         return pellets
+
+    def __create_power_pellets(
+        self: "GameStateFactory",
+        maze: MazeGrid
+    ) -> set[GridPosition]:
+        return {
+            GridPosition(row=0, column=0),
+            GridPosition(row=0, column=len(maze[0]) - 1),
+            GridPosition(row=len(maze) - 1, column=0),
+            GridPosition(row=len(maze) - 1, column=len(maze[0]) - 1)
+        }

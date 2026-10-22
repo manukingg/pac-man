@@ -6,6 +6,7 @@ from .ghost import GhostModel, GhostKind, GhostMode
 from .maze import Wall, MazeGrid
 from .common import GridPosition, Direction, Position
 from .ghost_assets import GhostAssets, GhostImages
+from .rules import GameRules
 
 
 __all__ = (
@@ -25,4 +26,5 @@ __all__ = (
     GhostAssets,
     GhostImages,
     GhostMode,
+    GameRules,
 )

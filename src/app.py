@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .animation import AnimatedSprite
 from .graphics import GraphicsBackend
-from .models import AppState, ScreenType
+from .models import AppState, ScreenType, GameRules
 from .sprites_loader import SpritesLoader
 from .screens import (
     Screen,
@@ -91,6 +91,7 @@ class Application:
             ScreenType.GAME: GameScreen(
                 pacman_sprite=pacman_sprite,
                 ghosts_sprites=ghosts_sprites,
+                rules=self.__create_game_rules(config=config)
             )
         }
 
@@ -240,3 +241,10 @@ class Application:
             self._frame_needs_rebuild = True
             self._save_user_preferences()
             return
+
+    def __create_game_rules(self: "Application", config: Config) -> GameRules:
+        return GameRules(
+            score_per_pacgum=config.points_per_pacgum,
+            score_per_super_pacgum=config.points_per_super_pacgum,
+            score_per_ghost=config.points_per_ghost,
+        )

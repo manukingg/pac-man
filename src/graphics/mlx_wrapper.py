@@ -167,7 +167,7 @@ class MlxWrapper:
                 x1=x1,
                 y1=y1,
             ):
-                self._draw_filled_circle(
+                self.draw_filled_circle(
                     image=image,
                     center_x=x,
                     center_y=y,
@@ -176,7 +176,7 @@ class MlxWrapper:
                 )
 
         if rounded:
-            self._draw_filled_circle(
+            self.draw_filled_circle(
                 image=image,
                 center_x=x0,
                 center_y=y0,
@@ -184,7 +184,7 @@ class MlxWrapper:
                 color=color,
             )
 
-            self._draw_filled_circle(
+            self.draw_filled_circle(
                 image=image,
                 center_x=x1,
                 center_y=y1,
@@ -592,6 +592,31 @@ class MlxWrapper:
             for current_x in range(x, x + width):
                 self.put_pixel(image, current_x, current_y, color)
 
+    def draw_filled_circle(
+        self: "MlxWrapper",
+        image: Image,
+        center_x: int,
+        center_y: int,
+        radius: int,
+        color: Color,
+    ) -> None:
+        """Draw a filled circle."""
+
+        radius_squared = radius * radius
+
+        for offset_y in range(-radius, radius + 1):
+            remaining = radius_squared - offset_y * offset_y
+            half_width = int(remaining ** 0.5)
+
+            self._draw_single_line(
+                image=image,
+                x0=center_x - half_width,
+                y0=center_y + offset_y,
+                x1=center_x + half_width,
+                y1=center_y + offset_y,
+                color=color,
+            )
+
     def write_text(
         self: "MlxWrapper",
         text: str,
@@ -774,31 +799,6 @@ class MlxWrapper:
             if double_error < dx:
                 error += dx
                 y += step_y
-
-    def _draw_filled_circle(
-        self: "MlxWrapper",
-        image: Image,
-        center_x: int,
-        center_y: int,
-        radius: int,
-        color: Color,
-    ) -> None:
-        """Draw a filled circle."""
-
-        radius_squared = radius * radius
-
-        for offset_y in range(-radius, radius + 1):
-            remaining = radius_squared - offset_y * offset_y
-            half_width = int(remaining ** 0.5)
-
-            self._draw_single_line(
-                image=image,
-                x0=center_x - half_width,
-                y0=center_y + offset_y,
-                x1=center_x + half_width,
-                y1=center_y + offset_y,
-                color=color,
-            )
 
     def _get_font_letter_bitmap(
         self: "MlxWrapper",

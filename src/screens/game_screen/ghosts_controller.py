@@ -13,6 +13,7 @@ from .game_layout import GameLayout
 
 import random
 
+GHOST_RESPAWN_DURATION = 2
 CLYDE_CHASE_DISTANCE = 8
 POSITION_EPSILON = 0.001
 
@@ -30,20 +31,45 @@ class GhostsController:
         player: PlayerModel,
         maze: MazeGrid,
         delta_time: float,
+
         ghosts_speed: float,
+        normal_speed_multiplier: float,
+        normal_mode: GhostMode,
+
         layout: GameLayout,
     ) -> None:
         for ghost in ghosts:
             if (
                 ghost.position is None
-                or ghost.mode in (GhostMode.FROZEN, GhostMode.RESPAWNING)
+                or ghost.mode == GhostMode.FROZEN
             ):
                 continue
+
+            if ghost.mode == GhostMode.RESPAWNING:
+                ghost.update_respawn(delta_time)
+
+                if ghost.respawn_time_remaining <= 0:
+                    ghost.finish_respawn(
+                        mode=normal_mode,
+                        speed_multiplier=normal_speed_multiplier,
+                    )
+
+                continue
+
+            if (
+                ghost.mode == GhostMode.EATEN
+                and ghost.grid_position == ghost.spawn_position
+            ):
+                ghost.start_respawning(
+                    duration=GHOST_RESPAWN_DURATION
+                )
+
             distance = (
                 ghosts_speed
                 * ghost.speed_multiplier
                 * delta_time
             )
+
             self.__update_ghost_movement(
                 ghost=ghost,
                 player=player,
@@ -192,9 +218,13 @@ class GhostsController:
         maze: MazeGrid,
         ghosts: list[GhostModel]
     ) -> Direction:
+        final_direction: Direction | None = None
+
         reverse_direction = ghost.direction.reversed()
+
         if (
-            reverse_direction in available_directions
+            ghost.mode != GhostMode.EATEN
+            and reverse_direction in available_directions
             and len(available_directions) > 1
         ):
             available_directions.remove(reverse_direction)
@@ -204,15 +234,28 @@ class GhostsController:
                 available_directions=available_directions,
                 ghost=ghost,
                 player=player,
-                maze=maze,
                 ghosts=ghosts,
             )
 
-        if (
-            ghost.mode == GhostMode.FRIGHTENED
-            or ghost.mode == GhostMode.FRIGHTENED_WARNING
-        ):
+        elif ghost.mode == GhostMode.SCATTER:
+            final_direction = (
+                self.__choose_direction_towards_target(
+                    available_directions=available_directions,
+                    current_position=ghost.grid_position,
+                    target=ghost.spawn_position,
+                )
+            )
+
+        elif ghost.mode == GhostMode.FRIGHTENED:
             final_direction = random.choice(available_directions)
+
+        elif ghost.mode == GhostMode.EATEN:
+            final_direction = self.__maze_navigator.find_next_direction(
+                maze=maze,
+                start=ghost.grid_position,
+                target=ghost.spawn_position,
+                available_directions=available_directions
+            )
 
         if final_direction is not None:
             return final_direction
@@ -263,28 +306,13 @@ class GhostsController:
         available_directions: list[Direction],
         ghost: GhostModel,
         player: PlayerModel,
-        maze: MazeGrid,
         ghosts: list[GhostModel],
     ) -> Direction | None:
-        start = ghost.grid_position
         if ghost.kind == GhostKind.BLINKY:
             target = player.grid_position
 
-            return self.__maze_navigator.find_next_direction(
-                maze=maze,
-                start=start,
-                target=target,
-                available_directions=available_directions,
-            )
-
         elif ghost.kind == GhostKind.PINKY:
             target = self.__pinky_target(player)
-
-            return self.__choose_direction_towards_target(
-                available_directions=available_directions,
-                current_position=ghost.grid_position,
-                target=target,
-            )
 
         elif ghost.kind == GhostKind.INKY:
             blinky = self.__get_ghost_by_kind(
@@ -300,25 +328,17 @@ class GhostsController:
                 blinky=blinky
             )
 
-            return self.__choose_direction_towards_target(
-                available_directions=available_directions,
-                current_position=ghost.grid_position,
-                target=target,
-            )
-
         elif ghost.kind == GhostKind.CLYDE:
             target = self.__clyde_target(
                 ghost=ghost,
                 player=player,
             )
 
-            return self.__choose_direction_towards_target(
-                available_directions=available_directions,
-                current_position=ghost.grid_position,
-                target=target,
-            )
-
-        return None
+        return self.__choose_direction_towards_target(
+            available_directions=available_directions,
+            current_position=ghost.grid_position,
+            target=target,
+        )
 
     def __pinky_target(
         self: "GhostsController",

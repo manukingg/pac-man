@@ -29,7 +29,7 @@ class GameStateFactory:
         """Create a fully initialized game state."""
 
         self.__generator_service = MazeGeneratorService(
-            config=self.__config,
+            seed=self.__config.seed,
             level=level,
         )
         maze = self.__generator_service.generate()
@@ -44,7 +44,7 @@ class GameStateFactory:
             player=player,
             score=0,
             lives=self.__config.lives,
-            level=level.level_number,
+            level=level,
             remaining_time=float(self.__config.level_max_time),
             pellets=pellets,
             power_pellets=power_pellets,
@@ -61,10 +61,14 @@ class GameStateFactory:
             column=level.width // 2 - 1,
         )
 
-        return PlayerModel(
+        player = PlayerModel(
             grid_position=position,
             spawn_grid_position=position,
         )
+
+        player.set_speed(level.pacman_speed_multiplier)
+
+        return player
 
     def __create_ghosts(
         self: "GameStateFactory",
@@ -95,15 +99,14 @@ class GameStateFactory:
 
         for kind in GhostKind:
             spawn_position = spawn_positions[kind]
-
-            ghosts.append(
-                GhostModel(
-                    kind=kind,
-                    grid_position=spawn_position,
-                    spawn_position=spawn_position,
-                    direction=Direction.LEFT
-                )
-            )
+            ghost = GhostModel(
+                        kind=kind,
+                        grid_position=spawn_position,
+                        spawn_position=spawn_position,
+                        direction=Direction.LEFT
+                    )
+            ghost.set_speed(level.ghost_speed_multiplier)
+            ghosts.append(ghost)
 
         return ghosts
 

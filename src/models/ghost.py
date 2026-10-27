@@ -10,11 +10,11 @@ class GhostMode(Enum):
     """Current behavioral state of a ghost."""
 
     CHASE = auto()
+    SCATTER = auto()
     FRIGHTENED = auto()
-    FRIGHTENED_WARNING = auto()
     EATEN = auto()
-    RESPAWNING = auto()
     FROZEN = auto()
+    RESPAWNING = auto()
 
 
 class GhostKind(Enum):
@@ -37,10 +37,11 @@ class GhostModel:
 
     speed_multiplier: float = 1.0
 
+    respawn_time_remaining: float = 0.0
+
     direction: Direction = Direction.NONE
     position: Position | None = None
     mode: GhostMode = GhostMode.CHASE
-    respawn_time_remaining: float = 0.0
 
     force_reverse_pending: bool = False
 
@@ -54,23 +55,17 @@ class GhostModel:
     def dangerous(self: "GhostModel") -> bool:
         """Return whether touching the ghost harms the player."""
 
-        return self.mode is GhostMode.CHASE
+        return self.mode in (GhostMode.CHASE, GhostMode.SCATTER)
 
     @property
     def active(self: "GhostModel") -> bool:
         """Return whether the ghost may currently move."""
 
-        return self.mode not in {
-            GhostMode.RESPAWNING,
-            GhostMode.FROZEN,
-        }
+        return self.mode != GhostMode.FROZEN
 
     @property
     def frightened(self: "GhostModel") -> bool:
-        return self.mode in {
-            GhostMode.FRIGHTENED,
-            GhostMode.FRIGHTENED_WARNING,
-        }
+        return self.mode == GhostMode.FRIGHTENED
 
     def move_to(self: "GhostModel", position: Position) -> None:
         """Move the ghost to a validated maze position."""
@@ -88,13 +83,10 @@ class GhostModel:
 
         self.direction = direction
 
-    def frighten(self: "GhostModel") -> None:
+    def frighten(self: "GhostModel", speed_multiplier: float) -> None:
         """Make the ghost edible for a limited duration."""
 
-        if self.mode in {
-            GhostMode.EATEN,
-            GhostMode.RESPAWNING,
-        }:
+        if self.mode not in (GhostMode.CHASE, GhostMode.SCATTER):
             return
 
         self.mode = GhostMode.FRIGHTENED
@@ -103,55 +95,46 @@ class GhostModel:
             self.direction = self.direction.reversed()
             self.force_reverse_pending = True
 
-        self.set_speed(0.65)
+        self.set_speed(speed_multiplier)
 
-    def frighten_warning(self: "GhostModel") -> None:
-        """Make the ghost frighten almost ended"""
+    def restore_normal_mode(
+        self: "GhostModel",
+        mode: GhostMode,
+        speed_multiplier: float
+    ) -> None:
+        """Return the ghost to its normal chase behavior."""
+        if mode not in (GhostMode.CHASE, GhostMode.SCATTER):
+            raise ValueError("Normal ghost mode must be CHSE or SCATTER")
 
-        if self.mode in {
-            GhostMode.EATEN,
-            GhostMode.RESPAWNING,
-        }:
+        self.mode = mode
+        self.force_reverse_pending = False
+
+        self.set_speed(speed_multiplier)
+
+    def switch_behavior(self: "GhostModel", mode: GhostMode) -> None:
+        if mode not in (GhostMode.CHASE, GhostMode.SCATTER):
+            raise ValueError("Ghost behavior must be CHASE or SCATTER")
+
+        if self.mode not in (GhostMode.CHASE, GhostMode.SCATTER):
             return
 
-        self.mode = GhostMode.FRIGHTENED_WARNING
+        if self.mode == mode:
+            return
 
-    def restore_chase_mode(self) -> None:
-        """Return the ghost to its normal chase behavior."""
+        self.mode = mode
 
-        self.mode = GhostMode.CHASE
-        self.set_speed(1)
+        if self.direction != Direction.NONE:
+            self.direction = self.direction.reversed()
+            self.force_reverse_pending = True
 
-    def eat(self: "GhostModel", respawn_delay: float) -> None:
-        """Mark the ghost as eaten and start its respawn delay."""
-
+    def eat(self: "GhostModel", speed_multiplier: float) -> None:
+        """Mark the ghost as eaten."""
         if not self.edible:
             return
 
         self.mode = GhostMode.EATEN
         self.force_reverse_pending = False
-        self.respawn_time_remaining = max(0.0, respawn_delay)
-
-    def begin_respawn(self: "GhostModel", position: Position) -> None:
-        """Move the ghost back to its corner and start respawning."""
-
-        self.grid_position = self.spawn_position
-        self.position = position
-        self.direction = Direction.NONE
-        self.mode = GhostMode.RESPAWNING
-        self.force_reverse_pending = False
-
-    def finish_respawn(self: "GhostModel") -> None:
-        """Return the ghost to the active chase state."""
-
-        self.mode = GhostMode.CHASE
-        self.respawn_time_remaining = 0.0
-        self.force_reverse_pending = False
-
-    def increase_speed(self: "GhostModel") -> None:
-        """Increase ghost's speed after respawn"""
-
-        self.speed_multiplier += 0.5
+        self.set_speed(speed_multiplier)
 
     def freeze(self: "GhostModel") -> None:
         """Freeze the ghost for cheat mode."""
@@ -171,3 +154,66 @@ class GhostModel:
 
     def set_speed(self: "GhostModel", speed: float) -> None:
         self.speed_multiplier = speed
+
+    def reset_to_spawn(
+        self: "GhostModel",
+        mode: GhostMode,
+        speed_multiplier: float,
+    ) -> None:
+        self.grid_position = self.spawn_position
+        self.position = None
+
+        self.direction = Direction.NONE
+        self.force_reverse_pending = False
+        self.respawn_time_remaining = 0.0
+        self.restore_normal_mode(
+            mode=mode,
+            speed_multiplier=speed_multiplier,
+        )
+
+    def start_respawning(
+        self: "GhostModel",
+        duration: float,
+    ) -> None:
+        if self.mode != GhostMode.EATEN:
+            return
+
+        self.mode = GhostMode.RESPAWNING
+
+        self.respawn_time_remaining = max(0.0, duration)
+
+        self.force_reverse_pending = False
+
+    def update_respawn(
+        self: "GhostModel",
+        delta_time: float,
+    ) -> None:
+        if self.mode != GhostMode.RESPAWNING:
+            return
+
+        self.respawn_time_remaining = max(
+            0.0,
+            self.respawn_time_remaining - delta_time
+        )
+
+    def finish_respawn(
+        self: "GhostModel",
+        mode: GhostMode,
+        speed_multiplier: float,
+    ) -> None:
+        if self.mode != GhostMode.RESPAWNING:
+            return
+
+        self.respawn_time_remaining = 0.0
+
+        self.restore_normal_mode(
+            mode=mode,
+            speed_multiplier=speed_multiplier,
+        )
+
+
+@dataclass(slots=True)
+class ScorePopup:
+    ghost_kind: GhostKind
+    position: Position
+    score: int

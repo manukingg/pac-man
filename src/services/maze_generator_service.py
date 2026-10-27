@@ -1,17 +1,17 @@
 import random
 from mazegenerator import MazeGenerator
 
-from ..models import Config, MazeGrid, Wall, Level
+from ..models import MazeGrid, Wall, Level
 
 
 class MazeGeneratorService:
 
     def __init__(
         self: 'MazeGeneratorService',
-        config: Config,
+        seed: int,
         level: Level
     ) -> None:
-        random.seed(int(config.seed))
+        random.seed(int(seed))
         entry: tuple[int, int] = (random.randint(0, level.width - 1),
                                   random.randint(0, level.height - 1))
         exit: tuple[int, int] = (random.randint(0, level.width - 1),
@@ -26,9 +26,9 @@ class MazeGeneratorService:
             perfect=False,
             entry_cell=entry,
             exit_cell=exit,
-            seed=int(config.seed)
+            seed=int(seed)
         )
-        self.__seed: int = int(config.seed)
+        self.__seed: int = int(seed)
 
     def generate(self: 'MazeGeneratorService') -> MazeGrid:
         self.__generator.generate(self.__seed)

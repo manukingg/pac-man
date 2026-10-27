@@ -1,67 +1,117 @@
 {
     "highscore_filename": "highscores.json",
-    "level" : [
-        {
-            "level_number": 0,
-            "width": "14",
-            "height": "10"
-        },
+    "level_numbers" : [
         {
             "level_number": 1,
-            "width": "19",
-            "height": "17"
+            "width": 12,
+            "height": 8,
+            "frightened_duration": 6.0,
+            "frightened_speed_multiplier": 0.50,
+            "ghost_speed_multiplier": 0.75,
+            "pacman_speed_multiplier": 0.80,
+            "powered_pacman_speed_multiplier": 0.90
         },
         {
             "level_number": 2,
-            "width": "19",
-            "height": "19"
+            "width": 7,
+            "height": 5,
+            "frightened_duration": 5.0,
+            "frightened_speed_multiplier": 0.55,
+            "ghost_speed_multiplier": 0.85,
+            "pacman_speed_multiplier": 0.90,
+            "powered_pacman_speed_multiplier": 0.95
         },
-
         {
             "level_number": 3,
-            "width": "24",
-            "height": "19"
+            "width": 8,
+            "height": 8,
+            "frightened_duration": 4.0,
+            "frightened_speed_multiplier": 0.55,
+            "ghost_speed_multiplier": 0.85,
+            "pacman_speed_multiplier": 0.90,
+            "powered_pacman_speed_multiplier": 0.95
         },
 
         {
             "level_number": 4,
-            "width": "24",
-            "height": "24"
+            "width": 10,
+            "height": 8,
+            "frightened_duration": 3.0,
+            "frightened_speed_multiplier": 0.55,
+            "ghost_speed_multiplier": 0.85,
+            "pacman_speed_multiplier": 0.90,
+            "powered_pacman_speed_multiplier": 0.95
         },
-
         {
             "level_number": 5,
-            "width": "29",
-            "height": "24"
+            "width": 13,
+            "height": 9,
+            "frightened_duration": 2.0,
+            "frightened_speed_multiplier": 0.60,
+            "ghost_speed_multiplier": 0.95,
+            "pacman_speed_multiplier": 1.00,
+            "powered_pacman_speed_multiplier": 1.00
         },
         {
             "level_number": 6,
-            "width": "29",
-            "height": "27"
+            "width": 14,
+            "height": 10,
+            "frightened_duration": 5.0,
+            "frightened_speed_multiplier": 0.60,
+            "ghost_speed_multiplier": 0.95,
+            "pacman_speed_multiplier": 1.00,
+            "powered_pacman_speed_multiplier": 1.00
         },
         {
             "level_number": 7,
-            "width": "31",
-            "height": "29"
+            "width": 14,
+            "height": 14,
+            "frightened_duration": 2.0,
+            "frightened_speed_multiplier": 0.60,
+            "ghost_speed_multiplier": 0.95,
+            "pacman_speed_multiplier": 1.00,
+            "powered_pacman_speed_multiplier": 1.00
         },
         {
             "level_number": 8,
-            "width": "34",
-            "height": "29"
+            "width": 18,
+            "height": 14,
+            "frightened_duration": 1.0,
+            "frightened_speed_multiplier": 0.60,
+            "ghost_speed_multiplier": 0.95,
+            "pacman_speed_multiplier": 1.00,
+            "powered_pacman_speed_multiplier": 1.00
         },
         {
             "level_number": 9,
-            "width": "34",
-            "height": "34"
+            "width": 18,
+            "height": 18,
+            "frightened_duration": 5.0,
+            "frightened_speed_multiplier": 0.60,
+            "ghost_speed_multiplier": 0.95,
+            "pacman_speed_multiplier": 1.00,
+            "powered_pacman_speed_multiplier": 1.00
+        },
+        {
+            "level_number": 10,
+            "width": 22,
+            "height": 18,
+            "frightened_duration": 5.0,
+            "frightened_speed_multiplier": 0.60,
+            "ghost_speed_multiplier": 0.95,
+            "pacman_speed_multiplier": 1.00,
+            "powered_pacman_speed_multiplier": 1.00
         }
     ],
     "lives": 3,
     "pacgum": 41,
-    "points_per_pacgum": 9,
-    "points_per_super_pacgum": 49,
-    "points_per_ghost": 199,
+    "game_rules": {
+        "points_per_pacgum": 10,
+        "points_per_super_pacgum": 50,
+        "points_per_ghost": 200
+    },
     "seed": "42",
-    "level_max_time": 499,
+    "level_number_max_time": 90,
     "window_width": 1920,
     "window_height": 1080
 }

@@ -7,6 +7,7 @@ from .maze_navigator import MazeNavigator
 from .ghosts_renderer import GhostsRenderer
 from .ghosts_controller import GhostsController
 from .game_rules_controller import GameRulesController
+from .game_overlay_renderer import GameOverlayRenderer
 
 from ...animation import AnimatedSprite
 from ...graphics import (
@@ -73,6 +74,8 @@ class GameScreen(Screen):
 
         self.__layout = GameLayout()
 
+        self.__game_overlay_renderer = GameOverlayRenderer()
+
     def handle_event(
         self: "GameScreen",
         event: GraphicsEvent,
@@ -86,6 +89,7 @@ class GameScreen(Screen):
             self.__maze_renderer.invalidate()
             self.__pellet_renderer.invalidate()
             self.__player_renderer.invalidate()
+            self.__ghosts_renderer.invalidate()
             if state.game_state is not None:
                 state.game_state.player.reset_position()
             return
@@ -137,6 +141,12 @@ class GameScreen(Screen):
         if game_state.power_pellets is None or game_state.pellets is None:
             return
 
+        if self.__game_rules_controller.update_phase(
+            game_state=game_state,
+            delta_time=delta_time,
+        ):
+            return
+
         reached_cells = self.__player_controller.update(
             player=game_state.player,
             maze=game_state.maze,
@@ -151,6 +161,8 @@ class GameScreen(Screen):
             maze=game_state.maze,
             delta_time=delta_time,
             ghosts_speed=self.__layout.ghosts_speed,
+            normal_speed_multiplier=game_state.level.ghost_speed_multiplier,
+            normal_mode=game_state.ghost_behavior_mode,
             layout=self.__layout,
         )
 
@@ -158,6 +170,7 @@ class GameScreen(Screen):
             game_state=game_state,
             reached_cells=reached_cells,
             delta_time=delta_time,
+            collision_distance=self.__layout.collision_distance,
         )
 
         self.__pellet_renderer.update(delta_time=delta_time)
@@ -165,6 +178,7 @@ class GameScreen(Screen):
         self.__ghosts_renderer.update(
             ghosts=game_state.ghosts,
             delta_time=delta_time,
+            game_state=game_state,
         )
 
     def render(
@@ -251,8 +265,16 @@ class GameScreen(Screen):
                 display=display,
                 image=image,
                 ghosts=game_state.ghosts,
-                ghosts_size=self.__layout.player_size,
+                ghosts_size=self.__layout.ghost_size,
+                game_state=game_state,
             )
+
+        self.__game_overlay_renderer.render(
+            display=display,
+            image=image,
+            game_state=game_state,
+            layout=self.__layout,
+        )
 
     def __initialize_layout(
         self: "GameScreen",
@@ -265,6 +287,7 @@ class GameScreen(Screen):
 
         old_player_size = self.__layout.player_size
         old_pellet_size = self.__layout.pellet_size
+        old_ghost_size = self.__layout.ghost_size
 
         if not self.__layout.update(
             image=image,
@@ -284,6 +307,9 @@ class GameScreen(Screen):
 
         if self.__layout.pellet_size != old_pellet_size:
             self.__pellet_renderer.invalidate()
+
+        if self.__layout.ghost_size != old_ghost_size:
+            self.__ghosts_renderer.invalidate()
 
         return True
 

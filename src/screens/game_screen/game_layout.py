@@ -23,6 +23,9 @@ class GameLayout:
     ghost_size: int | None = None
     ghosts_speed: float | None = None
 
+    score_popup_size: int | None = None
+    collision_distance: float | None = None
+
     def update(
         self: "GameLayout",
         image: Image,
@@ -51,6 +54,9 @@ class GameLayout:
             self.power_pellet_size = None
             self.ghost_size = None
             self.ghosts_speed = None
+
+            self.score_popup_size = None
+            self.collision_distance = None
 
             return False
 
@@ -112,6 +118,9 @@ class GameLayout:
         self.ghost_size = None
         self.ghosts_speed = None
 
+        self.score_popup_size = None
+        self.collision_distance = None
+
     def update_screen_metrics(
         self: "GameLayout",
         image: Image,
@@ -154,17 +163,21 @@ class GameLayout:
         if self.cell_size is None:
             return
 
-        self.player_size = max(8, round(self.cell_size * 0.72))
+        self.player_size = max(8, round(self.cell_size * 0.6))
 
-        self.ghost_size = max(7, round(self.cell_size * 0.6))
+        self.ghost_size = max(7, round(self.cell_size * 0.72))
 
         self.pellet_size = max(2, round(self.cell_size * 0.10))
 
+        self.score_popup_size = max(2, round(self.cell_size * 0.05))
+
         self.power_pellet_size = max(4, round(self.cell_size * 0.35))
 
-        self.player_speed = self.cell_size * 2.5
+        self.collision_distance = self.cell_size * 0.25
 
-        self.ghosts_speed = self.cell_size * 2.2
+        self.player_speed = self.cell_size * 4
+
+        self.ghosts_speed = self.cell_size * 4
 
     def __get_maze_size(
         self: "GameLayout",

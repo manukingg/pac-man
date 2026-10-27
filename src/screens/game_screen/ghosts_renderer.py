@@ -1,5 +1,13 @@
-from ...models import GhostAssets, GhostModel, GhostMode, Direction
+from ...models import (
+    GhostAssets,
+    GhostModel,
+    GhostMode,
+    Direction,
+    GameState,
+)
 from ...graphics import GraphicsBackend, Image
+
+RESPAWN_BLINK_INTERVAL = 0.2
 
 
 class GhostsRenderer:
@@ -17,6 +25,7 @@ class GhostsRenderer:
         image: Image,
         ghosts: list[GhostModel],
         ghosts_size: int,
+        game_state: GameState,
     ) -> None:
         self.__ensure_scale(
             display=display,
@@ -26,9 +35,21 @@ class GhostsRenderer:
         for ghost in ghosts:
             if ghost.position is None:
                 continue
-            image_to_put = self.__choose_ghost_sprite(ghost)
+
+            if (
+                game_state.score_popup is not None
+                and ghost.kind == game_state.score_popup.ghost_kind
+            ):
+                continue
+
+            if not self.__is_respawning_visible(ghost):
+                continue
+
+            image_to_put = self.__choose_ghost_sprite(ghost, game_state)
+
             if image_to_put is None:
                 continue
+
             x = round(ghost.position.x - ghosts_size / 2)
             y = round(ghost.position.y - ghosts_size / 2)
             display.put_image(
@@ -43,10 +64,14 @@ class GhostsRenderer:
         self: "GhostsRenderer",
         ghosts: list[GhostModel],
         delta_time: float,
+        game_state: GameState,
     ) -> None:
-        warning_active = any(
-            ghost.mode == GhostMode.FRIGHTENED_WARNING
-            for ghost in ghosts
+        warning_active = (
+            0 < game_state.power_mode_remaining < 1
+            and any(
+                ghost.mode == GhostMode.FRIGHTENED
+                for ghost in ghosts
+            )
         )
 
         if warning_active and not self.__warning_active:
@@ -60,18 +85,27 @@ class GhostsRenderer:
     def __choose_ghost_sprite(
         self: "GhostsRenderer",
         ghost: GhostModel,
+        game_state: GameState
     ) -> Image | None:
         if ghost.mode == GhostMode.FRIGHTENED:
+
+            if 0 < game_state.power_mode_remaining < 1:
+                return self.__ghost_sprites.frightened_warning.current_image
+
             return self.__ghost_sprites.frightened
 
-        if ghost.mode == GhostMode.FRIGHTENED_WARNING:
-            return self.__ghost_sprites.frightened_warning.current_image
+        if ghost.mode == GhostMode.RESPAWNING:
+            ghost_image = (
+                self.__ghost_sprites.ghosts[ghost.kind]
+            )
 
-        if ghost.direction == Direction.NONE:
-            return None
+            return ghost_image.chase[Direction.UP]
 
         if ghost.mode == GhostMode.EATEN:
             return self.__ghost_sprites.eaten[ghost.direction]
+
+        if ghost.direction == Direction.NONE:
+            return None
 
         ghost_image = self.__ghost_sprites.ghosts[ghost.kind]
         return ghost_image.chase[ghost.direction]
@@ -94,3 +128,16 @@ class GhostsRenderer:
             )
         )
         self.__prepared_scale = ghosts_size
+
+    def __is_respawning_visible(
+        self: "GhostsRenderer",
+        ghost: GhostModel,
+    ) -> bool:
+        if ghost.mode != GhostMode.RESPAWNING:
+            return True
+
+        blink_index = int(
+            ghost.respawn_time_remaining / RESPAWN_BLINK_INTERVAL
+        )
+
+        return blink_index % 2 == 0

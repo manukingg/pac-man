@@ -18,7 +18,7 @@ class PlayerModel:
 
     alive: bool = True
     invincible: bool = False
-    speed_multiplier: float = 2
+    speed_multiplier: float = 1
 
     def request_move(self: "PlayerModel", direction: Direction) -> None:
         """Remember the direction requested by the player."""
@@ -47,14 +47,17 @@ class PlayerModel:
         if not self.invincible:
             self.alive = False
 
-    def respawn(self: "PlayerModel", position: Position) -> None:
+    def respawn(self: "PlayerModel") -> None:
         """Respawn the player at the initial maze position."""
 
         self.grid_position = self.spawn_grid_position
-        self.position = position
+        self.position = None
         self.direction = Direction.NONE
         self.requested_direction = Direction.NONE
         self.alive = True
 
     def reset_position(self: "PlayerModel") -> None:
         self.position = None
+
+    def set_speed(self: "PlayerModel", speed: float) -> None:
+        self.speed_multiplier = max(0.1, speed)

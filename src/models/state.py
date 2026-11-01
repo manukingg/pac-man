@@ -11,6 +11,7 @@ from .common import GridPosition, Position
 
 class GamePhase(Enum):
     PLAYING = auto()
+    COUNTDOWN = auto()
     GHOST_EATEN = auto()
     PLAYER_DEATH = auto()
     LEVEL_COMPLETE = auto()
@@ -29,8 +30,8 @@ class GameState:
     level: Level
     remaining_time: float
 
-    pellets: set[GridPosition] | None
-    power_pellets: set[GridPosition] | None
+    pellets: set[GridPosition]
+    power_pellets: set[GridPosition]
 
     power_mode_remaining: float = 0.0
 
@@ -46,6 +47,8 @@ class GameState:
 
     ghosts_eaten_in_power_mode: int = 0
 
+    initial_collectible_count: int = 0
+
     @property
     def power_mode_active(self: "GameState") -> bool:
         """Return whether ghosts are currently edible."""
@@ -58,6 +61,15 @@ class GameState:
         return 1.0 - (
             self.phase_time_remaining
             / self.phase_duration
+        )
+
+    @property
+    def remaining_collectible_count(
+        self: "GameState",
+    ) -> int:
+        return (
+            len(self.pellets)
+            + len(self.power_pellets)
         )
 
     def add_score(self: "GameState", score: int) -> None:

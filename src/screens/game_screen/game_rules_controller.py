@@ -21,6 +21,9 @@ GHOST_BEHAVIOR_SCHEDULE = (
     (GhostMode.SCATTER, 5.0),
 )
 
+PACGUM_MOVEMENT_PAUSE = 1 / 60
+POWER_PELLET_MOVEMENT_PAUSE = 3 / 60
+
 
 class GameRulesController:
     def __init__(
@@ -88,6 +91,8 @@ class GameRulesController:
                 game_state.remove_pellet(cell)
 
                 game_state.add_score(self.__rules.score_per_pacgum)
+
+                game_state.player.pause_movement(PACGUM_MOVEMENT_PAUSE)
 
             elif cell in game_state.power_pellets:
                 self.__eat_power_pellet(
@@ -208,6 +213,8 @@ class GameRulesController:
         game_state.remove_power_pellet(position)
 
         game_state.add_score(self.__rules.score_per_super_pacgum)
+
+        game_state.player.pause_movement(POWER_PELLET_MOVEMENT_PAUSE)
 
         game_state.activate_power_mode(game_state.level.frightened_duration)
 

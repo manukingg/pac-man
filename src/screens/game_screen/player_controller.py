@@ -32,6 +32,10 @@ class PlayerController:
         if player.position is None:
             return []
 
+        if player.movement_paused:
+            player.update_movement_pause(delta_time)
+            return []
+
         distance = (
             player_speed
             * player.speed_multiplier

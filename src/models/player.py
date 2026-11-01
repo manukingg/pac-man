@@ -20,6 +20,8 @@ class PlayerModel:
     invincible: bool = False
     speed_multiplier: float = 1
 
+    movement_pause_remaining: float = 0.0
+
     def request_move(self: "PlayerModel", direction: Direction) -> None:
         """Remember the direction requested by the player."""
 
@@ -52,12 +54,37 @@ class PlayerModel:
 
         self.grid_position = self.spawn_grid_position
         self.position = None
+
         self.direction = Direction.NONE
         self.requested_direction = Direction.NONE
+
         self.alive = True
+        self.movement_pause_remaining = 0.0
 
     def reset_position(self: "PlayerModel") -> None:
         self.position = None
 
     def set_speed(self: "PlayerModel", speed: float) -> None:
         self.speed_multiplier = max(0.1, speed)
+
+    def pause_movement(
+        self: "PlayerModel",
+        duration: float,
+    ) -> None:
+        self.movement_pause_remaining = max(
+            self.movement_pause_remaining,
+            duration,
+        )
+
+    def update_movement_pause(
+        self: "PlayerModel",
+        delta_time: float,
+    ) -> None:
+        self.movement_pause_remaining = max(
+            0.0,
+            self.movement_pause_remaining - delta_time
+        )
+
+    @property
+    def movement_paused(self: "PlayerModel") -> bool:
+        return self.movement_pause_remaining > 0.0

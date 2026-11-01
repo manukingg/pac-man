@@ -1,6 +1,6 @@
 """Ghost state model."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto
 
 from .common import Direction, GridPosition, Position
@@ -44,6 +44,10 @@ class GhostModel:
     mode: GhostMode = GhostMode.CHASE
 
     force_reverse_pending: bool = False
+
+    recent_positions: list[GridPosition] = field(
+        default_factory=list
+    )
 
     @property
     def edible(self: "GhostModel") -> bool:
@@ -134,6 +138,7 @@ class GhostModel:
 
         self.mode = GhostMode.EATEN
         self.force_reverse_pending = False
+        self.recent_positions.clear()
         self.set_speed(speed_multiplier)
 
     def freeze(self: "GhostModel") -> None:
@@ -170,6 +175,7 @@ class GhostModel:
             mode=mode,
             speed_multiplier=speed_multiplier,
         )
+        self.recent_positions.clear()
 
     def start_respawning(
         self: "GhostModel",
@@ -210,6 +216,15 @@ class GhostModel:
             mode=mode,
             speed_multiplier=speed_multiplier,
         )
+
+    def remember_position(
+        self: "GhostModel",
+        position: GridPosition,
+    ) -> None:
+        self.recent_positions.append(position)
+
+        if len(self.recent_positions) > 8:
+            self.recent_positions.pop(0)
 
 
 @dataclass(slots=True)

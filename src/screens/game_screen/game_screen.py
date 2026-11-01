@@ -23,6 +23,7 @@ from ...models import (
     MazeGrid,
     GhostAssets,
     GameRules,
+    GamePhase,
 )
 
 from ..screen import Screen
@@ -105,6 +106,9 @@ class GameScreen(Screen):
         if game_state is None:
             return
 
+        if game_state.phase == GamePhase.COUNTDOWN:
+            return
+
         direction_by_key = {
             Key.UP: Direction.UP,
             Key.W: Direction.UP,
@@ -164,6 +168,8 @@ class GameScreen(Screen):
             normal_speed_multiplier=game_state.level.ghost_speed_multiplier,
             normal_mode=game_state.ghost_behavior_mode,
             layout=self.__layout,
+            remaining_collectibles=game_state.remaining_collectible_count,
+            initial_collectibles=game_state.initial_collectible_count,
         )
 
         self.__game_rules_controller.update(
@@ -274,6 +280,7 @@ class GameScreen(Screen):
             image=image,
             game_state=game_state,
             layout=self.__layout,
+            level=state.game_state.level
         )
 
     def __initialize_layout(

@@ -26,6 +26,23 @@ class GameLayout:
     score_popup_size: int | None = None
     collision_distance: float | None = None
 
+    @property
+    def countdown_font_size(self: "GameLayout") -> int:
+        if self.cell_size is None:
+            raise RuntimeError("Layout is not initialized")
+
+        return max(
+            2,
+            self.cell_size // 4,
+        )
+
+    @property
+    def get_cell_size(self: "GameLayout") -> int:
+        if self.cell_size is None:
+            raise RuntimeError("Layout cell size is not initialized")
+
+        return self.cell_size
+
     def update(
         self: "GameLayout",
         image: Image,
@@ -132,7 +149,7 @@ class GameLayout:
 
         self.padding = max(12, round(shortest_side * 0.025))
 
-        self.hud_height = max(60, round(image.height * 0.12))
+        self.hud_height = max(40, round(image.height * 0.08))
 
         self.error_font_size = max(2, round(shortest_side / 400))
 
@@ -208,6 +225,6 @@ class GameLayout:
             (
                 image.height
                 - maze_height
-                - self.hud_height
+                + self.hud_height
             ) // 2,
         )

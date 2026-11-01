@@ -15,7 +15,16 @@ import random
 
 GHOST_RESPAWN_DURATION = 2
 CLYDE_CHASE_DISTANCE = 8
+
 POSITION_EPSILON = 0.001
+
+SCATTER_TARGET_OFFSET = 3
+
+ELROY_STAGE_1_RATIO = 20 / 244
+ELROY_STAGE_2_RATIO = 10 / 244
+
+ELROY_STAGE_1_SPEED_FACTOR = 1.07
+ELROY_STAGE_2_SPEED_FACTOR = 1.13
 
 
 class GhostsController:
@@ -37,8 +46,27 @@ class GhostsController:
         normal_mode: GhostMode,
 
         layout: GameLayout,
+        remaining_collectibles: int,
+        initial_collectibles: int,
     ) -> None:
+        elroy_stage = self.__get_elroy_stage(
+            remaining=remaining_collectibles,
+            initial=initial_collectibles,
+        )
+
         for ghost in ghosts:
+            speed_multiplier = ghost.speed_multiplier
+
+            if (
+                ghost.kind == GhostKind.BLINKY
+                and ghost.mode in (GhostMode.CHASE, GhostMode.SCATTER)
+            ):
+                if elroy_stage == 1:
+                    speed_multiplier *= ELROY_STAGE_1_SPEED_FACTOR
+
+                elif elroy_stage == 2:
+                    speed_multiplier *= ELROY_STAGE_2_SPEED_FACTOR
+
             if (
                 ghost.position is None
                 or ghost.mode == GhostMode.FROZEN
@@ -63,10 +91,11 @@ class GhostsController:
                 ghost.start_respawning(
                     duration=GHOST_RESPAWN_DURATION
                 )
+                continue
 
             distance = (
                 ghosts_speed
-                * ghost.speed_multiplier
+                * speed_multiplier
                 * delta_time
             )
 
@@ -77,6 +106,7 @@ class GhostsController:
                 distance=distance,
                 layout=layout,
                 ghosts=ghosts,
+                elroy_stage=elroy_stage,
             )
 
     def initialize_ghosts_position(
@@ -118,6 +148,7 @@ class GhostsController:
         distance: float,
         layout: GameLayout,
         ghosts: list[GhostModel],
+        elroy_stage: int,
     ) -> None:
         if ghost.position is None:
             return
@@ -176,6 +207,7 @@ class GhostsController:
                         player=player,
                         maze=maze,
                         ghosts=ghosts,
+                        elroy_stage=elroy_stage,
                     )
                     ghost.direction = direction
 
@@ -194,6 +226,7 @@ class GhostsController:
                 return
 
             ghost.move_to_grid(next_cell)
+            ghost.remember_position(next_cell)
 
     def __get_available_directions(
         self: "GhostsController",
@@ -216,7 +249,8 @@ class GhostsController:
         ghost: GhostModel,
         player: PlayerModel,
         maze: MazeGrid,
-        ghosts: list[GhostModel]
+        ghosts: list[GhostModel],
+        elroy_stage: int,
     ) -> Direction:
         final_direction: Direction | None = None
 
@@ -229,20 +263,49 @@ class GhostsController:
         ):
             available_directions.remove(reverse_direction)
 
+        if (
+            ghost.mode in (
+                GhostMode.CHASE,
+                GhostMode.SCATTER,
+            )
+            and self.__is_ghost_looping(ghost)
+        ):
+            escape_direction = (
+                self.__choose_loop_escape_direction(
+                    ghost=ghost,
+                    available_directions=available_directions,
+                )
+            )
+
+            if escape_direction is not None:
+                ghost.recent_positions.clear()
+                return escape_direction
+
         if ghost.mode == GhostMode.CHASE:
             final_direction = self.__choose_direction_chase(
                 available_directions=available_directions,
                 ghost=ghost,
                 player=player,
                 ghosts=ghosts,
+                maze=maze,
             )
 
         elif ghost.mode == GhostMode.SCATTER:
+            if (
+                ghost.kind == GhostKind.BLINKY
+                and elroy_stage > 0
+            ):
+                target = player.grid_position
+            else:
+                target = self.__get_scatter_target(
+                    ghost=ghost,
+                    maze=maze,
+                )
             final_direction = (
                 self.__choose_direction_towards_target(
                     available_directions=available_directions,
                     current_position=ghost.grid_position,
-                    target=ghost.spawn_position,
+                    target=target,
                 )
             )
 
@@ -307,9 +370,15 @@ class GhostsController:
         ghost: GhostModel,
         player: PlayerModel,
         ghosts: list[GhostModel],
+        maze: MazeGrid,
     ) -> Direction | None:
         if ghost.kind == GhostKind.BLINKY:
-            target = player.grid_position
+            return self.__maze_navigator.find_next_direction(
+                maze=maze,
+                start=ghost.grid_position,
+                target=player.grid_position,
+                available_directions=available_directions,
+            )
 
         elif ghost.kind == GhostKind.PINKY:
             target = self.__pinky_target(player)
@@ -332,6 +401,7 @@ class GhostsController:
             target = self.__clyde_target(
                 ghost=ghost,
                 player=player,
+                maze=maze,
             )
 
         return self.__choose_direction_towards_target(
@@ -374,6 +444,7 @@ class GhostsController:
         self: "GhostsController",
         ghost: GhostModel,
         player: PlayerModel,
+        maze: MazeGrid,
     ) -> GridPosition:
         row_distance = (
             ghost.grid_position.row
@@ -392,9 +463,9 @@ class GhostsController:
         if distance_squared >= CLYDE_CHASE_DISTANCE ** 2:
             return player.grid_position
 
-        return GridPosition(
-            row=ghost.spawn_position.row + 2,
-            column=ghost.spawn_position.column - 2
+        return self.__get_scatter_target(
+            ghost=ghost,
+            maze=maze,
         )
 
     def __choose_direction_towards_target(
@@ -442,3 +513,88 @@ class GhostsController:
             if ghost.kind == kind:
                 return ghost
         return None
+
+    def __get_scatter_target(
+        self: "GhostsController",
+        ghost: GhostModel,
+        maze: MazeGrid,
+    ) -> GridPosition:
+        rows = len(maze)
+        columns = len(maze[0])
+
+        top = ghost.spawn_position.row < rows / 2
+        left = ghost.spawn_position.column < columns / 2
+
+        row = (
+            -SCATTER_TARGET_OFFSET
+            if top
+            else rows - 1 + SCATTER_TARGET_OFFSET
+        )
+
+        column = (
+            -SCATTER_TARGET_OFFSET
+            if left
+            else columns - 1 + SCATTER_TARGET_OFFSET
+        )
+
+        return GridPosition(
+            row=row,
+            column=column,
+        )
+
+    def __get_elroy_stage(
+        self: "GhostsController",
+        remaining: int,
+        initial: int,
+    ) -> int:
+        if initial <= 0:
+            return 0
+
+        stage_2_limit = max(
+            1,
+            round(initial * ELROY_STAGE_2_RATIO)
+        )
+
+        stage_1_limit = max(
+            stage_2_limit + 1,
+            round(initial * ELROY_STAGE_1_RATIO)
+        )
+
+        if remaining <= stage_2_limit:
+            return 2
+
+        if remaining <= stage_1_limit:
+            return 1
+
+        return 0
+
+    def __is_ghost_looping(
+        self: "GhostsController",
+        ghost: GhostModel,
+    ) -> bool:
+        history = ghost.recent_positions
+
+        if len(history) < 8:
+            return False
+
+        return history[-4:] == history[-8:-4]
+
+    def __choose_loop_escape_direction(
+        self: "GhostsController",
+        ghost: GhostModel,
+        available_directions: list[Direction]
+    ) -> Direction | None:
+        loop_cells = set(ghost.recent_positions[-4:])
+
+        escape_directions = []
+
+        for direction in available_directions:
+            candidate = ghost.grid_position.moved(direction=direction)
+
+            if candidate not in loop_cells:
+                escape_directions.append(direction)
+
+        if not escape_directions:
+            return None
+
+        return random.choice(escape_directions)

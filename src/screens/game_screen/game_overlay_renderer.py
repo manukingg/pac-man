@@ -1,10 +1,14 @@
 from ...graphics import GraphicsBackend, Image
-from ...models import GameState, ScorePopup, GamePhase
+from ...models import GameState, ScorePopup, GamePhase, Level
 from .game_layout import GameLayout
+
+import math
 
 
 SCORE_POPUP_COLOR = (255, 255, 255)
 SCORE_POPUP_RISE_FACTOR = 0.35
+COUNTDOWN_COLOR = (255, 255, 255)
+COUNTDOWN_FONT_SIZE = 18
 
 
 class GameOverlayRenderer:
@@ -17,7 +21,17 @@ class GameOverlayRenderer:
         image: Image,
         game_state: GameState,
         layout: GameLayout,
+        level: Level,
     ) -> None:
+        if game_state.phase == GamePhase.COUNTDOWN:
+            self.__render_countdown(
+                display=display,
+                image=image,
+                game_state=game_state,
+                font_size=layout.countdown_font_size,
+                level=level,
+                cell_size=layout.get_cell_size,
+            )
         if (
             game_state.phase != GamePhase.GHOST_EATEN
             or game_state.score_popup is None
@@ -69,4 +83,46 @@ class GameOverlayRenderer:
             font_size=size,
             color=SCORE_POPUP_COLOR,
             position=(x, y),
+        )
+
+    def __render_countdown(
+        self: "GameOverlayRenderer",
+        display: GraphicsBackend,
+        image: Image,
+        game_state: GameState,
+        font_size,
+        level: Level,
+        cell_size: int,
+    ) -> None:
+        countdown = math.ceil(game_state.phase_time_remaining)
+
+        if countdown <= 0:
+            return
+
+        text = str(countdown)
+
+        text_width = (
+            len(text) * 5 * font_size
+            + (len(text) - 1) * font_size
+        )
+
+        text_height = 8 * font_size
+        x = ((
+            image.width
+            - text_width
+        ) // 2 if level.width % 2 != 0
+            else (image.width - text_width) // 2 - cell_size // 2
+        )
+
+        y = (
+            image.height
+            - text_height
+        ) // 2
+
+        display.write_text(
+            text=text,
+            image=image,
+            font_size=font_size,
+            color=COUNTDOWN_COLOR,
+            position=(x, y)
         )

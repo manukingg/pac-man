@@ -7,9 +7,13 @@ from ..models import (
     Level,
     PlayerModel,
     MazeGrid,
-    Direction
+    Direction,
+    GamePhase,
 )
 from ..services import MazeGeneratorService
+
+
+LEVEL_START_COUNTDOWN_DURATION = 3.0
 
 
 class GameStateFactory:
@@ -38,7 +42,7 @@ class GameStateFactory:
         power_pellets = self.__create_power_pellets(maze)
         pellets = self.__create_pellets(maze, power_pellets, player)
 
-        return GameState(
+        game_state = GameState(
             maze=maze,
             ghosts=ghosts,
             player=player,
@@ -48,7 +52,15 @@ class GameStateFactory:
             remaining_time=float(self.__config.level_max_time),
             pellets=pellets,
             power_pellets=power_pellets,
+            initial_collectible_count=(len(pellets) + len(power_pellets))
         )
+
+        game_state.start_phase(
+            phase=GamePhase.COUNTDOWN,
+            duration=LEVEL_START_COUNTDOWN_DURATION
+        )
+
+        return game_state
 
     def __create_player(
         self: "GameStateFactory",
@@ -58,7 +70,11 @@ class GameStateFactory:
 
         position = GridPosition(
             row=level.height // 2 - 1,
-            column=level.width // 2 - 1,
+            column=(
+                level.width // 2 - 1
+                if level.width % 2 == 0
+                else level.width // 2
+            ),
         )
 
         player = PlayerModel(

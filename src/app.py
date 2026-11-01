@@ -1,4 +1,5 @@
 import json
+import traceback #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 from pathlib import Path
 
@@ -108,6 +109,9 @@ class Application:
         """Run the application loop."""
         try:
             self._display.start_loop(self._run_frame)
+
+        except Exception:
+            traceback.print_exc()
 
         finally:
             self._display.quit()

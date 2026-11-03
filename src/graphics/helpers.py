@@ -9,10 +9,10 @@ def get_text_width(text: str, font_size: int) -> int:
 
 
 def get_aligned_position(
+    image: Image,
     align: tuple[str | int | float],
     text: str,
     font_size: int,
-    image: Image
 ) -> tuple[int]:
     allowed_alignes_x = ("left", "center", "right")
     allowed_alignes_y = ("top", "center", "bottom")

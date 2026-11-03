@@ -14,6 +14,7 @@ class GamePhase(Enum):
     COUNTDOWN = auto()
     GHOST_EATEN = auto()
     PLAYER_DEATH = auto()
+    PLAYER_RESPAWN = auto()
     LEVEL_COMPLETE = auto()
 
 
@@ -71,6 +72,10 @@ class GameState:
             len(self.pellets)
             + len(self.power_pellets)
         )
+
+    @property
+    def phase_elapsed(self: "GameState") -> float:
+        return self.phase_duration - self.phase_time_remaining
 
     def add_score(self: "GameState", score: int) -> None:
         self.score += score

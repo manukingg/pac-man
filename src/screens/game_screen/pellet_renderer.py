@@ -1,13 +1,11 @@
 from ...graphics import GraphicsBackend, Image
 from ...models import GridPosition
+from ...constants import (
+    POWER_PELLET_BLINK_INTERVAL,
+    PELLET_COLOR,
+)
 
 from .game_layout import GameLayout
-
-
-Color = tuple[int, int, int]
-
-POWER_PELLET_BLINK_INTERVAL: float = 0.15
-PELLET_COLOR: Color = (255, 220, 180)
 
 
 class PelletRenderer:

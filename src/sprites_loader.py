@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from .graphics import GraphicsBackend
+from .graphics import GraphicsBackend, Image
 from .animation import AnimationClip, AnimatedSprite
 from .models import GhostImages, GhostAssets, GhostKind, Direction
 
@@ -96,6 +96,15 @@ class SpritesLoader:
         }
 
         return animations
+
+    def load_death_images(self: "SpritesLoader") -> tuple[Image]:
+        assets_path = Path("assets/pacman_death")
+        return tuple(
+            self._display.load_image(
+                assets_path / f"pacman_death_{index}.xpm"
+            )
+            for index in range(12)
+        )
 
     def __load_chase_mode(
         self: "SpritesLoader",

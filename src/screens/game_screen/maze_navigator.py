@@ -5,10 +5,11 @@ from ...models import (
     Wall,
     Position
 )
+from ...constants import (
+    POSITION_EPSILON
+)
 
 from collections import deque
-
-POSITION_EPSILON = 0.001
 
 
 class MazeNavigator:

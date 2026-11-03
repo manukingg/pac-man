@@ -43,6 +43,18 @@ class GameLayout:
 
         return self.cell_size
 
+    @property
+    def hud_font_size(self: "GameLayout") -> int:
+        return max(1, round(self.cell_size * 0.06))
+
+    @property
+    def hud_margin(self: "GameLayout") -> int:
+        return max(4, round(self.cell_size * 0.35))
+
+    @property
+    def life_icon_size(self: "GameLayout") -> int:
+        return self.cell_size
+
     def update(
         self: "GameLayout",
         image: Image,

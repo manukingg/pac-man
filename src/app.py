@@ -84,6 +84,8 @@ class Application:
 
         ghosts_sprites = self.__sprites_loader.load_ghosts_sprites()
 
+        pacman_death_images = self.__sprites_loader.load_death_images()
+
         self._screens: dict[ScreenType, Screen] = {
             ScreenType.MAIN_MENU: MainMenuScreen(
                 resolution_options=resolution_options,
@@ -91,6 +93,7 @@ class Application:
             ),
             ScreenType.GAME: GameScreen(
                 pacman_sprite=pacman_sprite,
+                pacman_death_images=pacman_death_images,
                 ghosts_sprites=ghosts_sprites,
                 rules=config.game_rules,
             )

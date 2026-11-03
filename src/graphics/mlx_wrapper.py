@@ -62,8 +62,12 @@ class MlxWrapper:
             MlxImage,
         ] = {}
 
+        self._font_images: dict[
+            tuple[str, int, Color],
+            MlxImage,
+        ] = {}
+
         self._register_window_hooks()
-        print("MLX INITIALIZED")
 
     def start_loop(
         self: "MlxWrapper",
@@ -264,6 +268,21 @@ class MlxWrapper:
             width=width,
             height=height,
         )
+
+    def prepare_scaled_font(
+        self: "MlxWrapper",
+        font_size: int,
+        color: Color,
+    ) -> None:
+        if font_size <= 0:
+            raise ValueError("Font size must be positive")
+
+        for letter in FONT_MAP:
+            self._get_font_letter_image(
+                letter=letter,
+                font_size=font_size,
+                color=color,
+            )
 
     def load_image(
         self: "MlxWrapper",
@@ -645,7 +664,7 @@ class MlxWrapper:
             top_left_x, top_left_y = position
 
         pixel_space = font_size
-
+        target_image = self._as_mlx_image(image)
         for letter in text:
 
             if letter not in FONT_MAP:
@@ -657,17 +676,14 @@ class MlxWrapper:
 
             if top_left_y + 8 * font_size > image.height:
                 break
-
-            letter_sized = self._get_font_letter_bitmap(letter, font_size)
-            for row in range(len(letter_sized)):
-                for column in range(len(letter_sized[row])):
-                    if letter_sized[row][column] == "1":
-                        self.put_pixel(
-                            image,
-                            top_left_x + column,
-                            top_left_y + row,
-                            color,
-                        )
+            letter_image = (
+                self._get_font_letter_image(
+                    letter=letter,
+                    font_size=font_size,
+                    color=color,
+                )
+            )
+            target_image.blit(letter_image, (top_left_x, top_left_y))
             top_left_x += 5 * font_size + pixel_space
 
     def _push_event(
@@ -800,37 +816,52 @@ class MlxWrapper:
                 error += dx
                 y += step_y
 
-    def _get_font_letter_bitmap(
+    def _get_font_letter_image(
         self: "MlxWrapper",
         letter: str,
-        font: int,
-    ) -> tuple[str, ...]:
-        letter_bitmap = FONT_MAP.get(letter)
+        font_size: int,
+        color: Color,
+    ) -> MlxImage:
+        if letter not in FONT_MAP:
+            letter = "?"
 
-        if letter_bitmap is None:
-            letter_bitmap = FONT_MAP["?"]
+        cache_key = (letter, font_size, color)
 
-        result: list[str] = []
+        cached = self._font_images.get(cache_key)
 
-        for row in range(
-            len(letter_bitmap)
-        ):
-            extended_column = ""
+        if cached is not None:
+            return cached
 
-            for column in range(
-                len(letter_bitmap[row])
-            ):
-                for _ in range(font):
-                    extended_column += (
-                        letter_bitmap[row][column]
-                    )
+        width = 5 * font_size
+        height = 8 * font_size
 
-            for _ in range(font):
-                result.append(
-                    extended_column
-                )
+        image = self._as_mlx_image(
+            self.new_image(
+                width=width,
+                height=height,
+            )
+        )
+        image.fill(color=(0, 0, 0), alpha=0)
 
-        return tuple(result)
+        bitmap = FONT_MAP[letter]
+
+        for row in range(len(bitmap)):
+            for column in range(len(bitmap[row])):
+                if bitmap[row][column] != "1":
+                    continue
+                start_x = column * font_size
+                start_y = row * font_size
+
+                for y in range(start_y, start_y + font_size):
+                    for x in range(start_x, start_x + font_size):
+                        image.set_at(
+                            position=(x, y),
+                            color=color,
+                            alpha=255,
+                        )
+        self._font_images[cache_key] = image
+
+        return image
 
     def _register_window_hooks(self: "MlxWrapper") -> None:
         self._mlx.mlx_hook(

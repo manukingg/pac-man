@@ -4,10 +4,13 @@ from ...models import (
     GhostMode,
     Direction,
     GameState,
+    GamePhase,
+)
+from ...constants import (
+    PLAYER_DEATH_FREEZE_DURATION,
+    RESPAWN_BLINK_INTERVAL,
 )
 from ...graphics import GraphicsBackend, Image
-
-RESPAWN_BLINK_INTERVAL = 0.2
 
 
 class GhostsRenderer:
@@ -31,6 +34,12 @@ class GhostsRenderer:
             display=display,
             ghosts_size=ghosts_size
         )
+
+        if (
+            game_state.phase == GamePhase.PLAYER_DEATH
+            and game_state.phase_elapsed >= PLAYER_DEATH_FREEZE_DURATION
+        ):
+            return
 
         for ghost in ghosts:
             if ghost.position is None:

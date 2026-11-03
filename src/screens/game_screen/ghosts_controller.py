@@ -8,23 +8,20 @@ from ...models import (
     GridPosition,
     PlayerModel,
 )
+from ...constants import (
+    GHOST_RESPAWN_DURATION,
+    CLYDE_CHASE_DISTANCE,
+    POSITION_EPSILON,
+    SCATTER_TARGET_OFFSET,
+    ELROY_STAGE_1_RATIO,
+    ELROY_STAGE_2_RATIO,
+    ELROY_STAGE_1_SPEED_FACTOR,
+    ELROY_STAGE_2_SPEED_FACTOR,
+)
 from .maze_navigator import MazeNavigator
 from .game_layout import GameLayout
 
 import random
-
-GHOST_RESPAWN_DURATION = 2
-CLYDE_CHASE_DISTANCE = 8
-
-POSITION_EPSILON = 0.001
-
-SCATTER_TARGET_OFFSET = 3
-
-ELROY_STAGE_1_RATIO = 20 / 244
-ELROY_STAGE_2_RATIO = 10 / 244
-
-ELROY_STAGE_1_SPEED_FACTOR = 1.07
-ELROY_STAGE_2_SPEED_FACTOR = 1.13
 
 
 class GhostsController:

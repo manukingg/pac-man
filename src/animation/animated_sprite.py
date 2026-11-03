@@ -22,6 +22,7 @@ class AnimatedSprite:
         self.__frame_index = 0
         self.__elapsed_time = 0.0
         self.__playing = playing
+        self.__initial_animation = initial_animation
 
     @property
     def current_image(self: "AnimatedSprite") -> Image:
@@ -67,6 +68,7 @@ class AnimatedSprite:
     def reset(self: "AnimatedSprite") -> None:
         self.__frame_index = 0
         self.__elapsed_time = 0.0
+        self.__current_animation = self.__initial_animation
 
     def update(
         self: "AnimatedSprite",

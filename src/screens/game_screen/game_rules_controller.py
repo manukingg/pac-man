@@ -8,21 +8,14 @@ from ...models import (
     PlayerModel,
     GhostMode
 )
-
-COLLISION_TRESHOLD = 0.0001
-EATEN_GHOST_SPEED_MULTIPLIER = 1.0
-
-GHOST_BEHAVIOR_SCHEDULE = (
-    (GhostMode.CHASE, 20.0),
-    (GhostMode.SCATTER, 7.0),
-    (GhostMode.CHASE, 20.0),
-    (GhostMode.SCATTER, 7.0),
-    (GhostMode.CHASE, 20.0),
-    (GhostMode.SCATTER, 5.0),
+from ...constants import (
+    EATEN_GHOST_SPEED_MULTIPLIER,
+    PLAYER_RESPAWN_DURATION,
+    PLAYER_DEATH_DURATION,
+    GHOST_BEHAVIOR_SCHEDULE,
+    PACGUM_MOVEMENT_PAUSE,
+    POWER_PELLET_MOVEMENT_PAUSE
 )
-
-PACGUM_MOVEMENT_PAUSE = 1 / 60
-POWER_PELLET_MOVEMENT_PAUSE = 3 / 60
 
 
 class GameRulesController:
@@ -72,10 +65,18 @@ class GameRulesController:
 
         if finished_phase == GamePhase.GHOST_EATEN:
             game_state.clear_ghost_score()
+            game_state.finish_phase()
+            return False
 
-        elif finished_phase == GamePhase.PLAYER_DEATH:
+        if finished_phase == GamePhase.PLAYER_DEATH:
             if game_state.lives > 0:
                 self.__reset_round(game_state)
+
+                game_state.start_phase(
+                    phase=GamePhase.PLAYER_RESPAWN,
+                    duration=PLAYER_RESPAWN_DURATION,
+                )
+                return True
 
         game_state.finish_phase()
 
@@ -153,23 +154,23 @@ class GameRulesController:
         second: Position,
         collision_distance: float
     ) -> bool:
-        # dx = first.x - second.x
-        # dy = first.y - second.y
+        dx = first.x - second.x
+        dy = first.y - second.y
 
-        # return (
-        #     dx * dx + dy * dy
-        #     <= collision_distance * collision_distance
-        # )
         return (
-            (
-                first.x == second.x and
-                abs(first.y - second.y) <= collision_distance
-            )
-            or (
-                first.y == second.y and
-                abs(first.x - second.x) <= collision_distance
-            )
+            dx * dx + dy * dy
+            <= collision_distance * collision_distance
         )
+        # return (
+        #     (
+        #         first.x == second.x and
+        #         abs(first.y - second.y) <= collision_distance
+        #     )
+        #     or (
+        #         first.y == second.y and
+        #         abs(first.x - second.x) <= collision_distance
+        #     )
+        # )
 
     def __eat_ghost(
         self: "GameRulesController",
@@ -203,7 +204,10 @@ class GameRulesController:
 
         player.die()
         game_state.lose_life()
-        game_state.start_phase(GamePhase.PLAYER_DEATH, duration=2.0)
+        game_state.start_phase(
+            GamePhase.PLAYER_DEATH,
+            duration=PLAYER_DEATH_DURATION
+        )
 
     def __eat_power_pellet(
         self: "GameRulesController",

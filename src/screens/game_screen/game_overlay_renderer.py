@@ -1,20 +1,16 @@
+from .game_layout import GameLayout
 from ...graphics import GraphicsBackend, Image
 from ...models import GameState, ScorePopup, GamePhase, Level
-from .game_layout import GameLayout
+from ...constants import (
+    SCORE_POPUP_RISE_FACTOR,
+    SCORE_POPUP_COLOR,
+    COUNTDOWN_COLOR,
+)
 
 import math
 
 
-SCORE_POPUP_COLOR = (255, 255, 255)
-SCORE_POPUP_RISE_FACTOR = 0.35
-COUNTDOWN_COLOR = (255, 255, 255)
-COUNTDOWN_FONT_SIZE = 18
-
-
 class GameOverlayRenderer:
-    def __init__(self: "GameOverlayRenderer") -> None:
-        pass
-
     def render(
         self: "GameOverlayRenderer",
         display: GraphicsBackend,

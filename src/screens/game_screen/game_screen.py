@@ -1,3 +1,4 @@
+from .hud_renderer import HudRenderer
 from .pellet_renderer import PelletRenderer
 from .maze_renderer import MazeRenderer
 from .player_controller import PlayerController
@@ -25,13 +26,14 @@ from ...models import (
     GameRules,
     GamePhase,
 )
+from ...constants import (
+    COUNTDOWN_DURATION,
+)
 
 from ..screen import Screen
 
 
 Color = tuple[int, int, int]
-
-PELLET_COLOR: Color = (255, 220, 180)
 
 
 class GameScreen(Screen):
@@ -45,6 +47,7 @@ class GameScreen(Screen):
     def __init__(
         self: "GameScreen",
         pacman_sprite: AnimatedSprite,
+        pacman_death_images: tuple[Image],
         ghosts_sprites: GhostAssets,
         rules: GameRules,
     ) -> None:
@@ -60,7 +63,8 @@ class GameScreen(Screen):
             ghosts_sprites=ghosts_sprites,
         )
         self.__player_renderer = PlayerRenderer(
-            pacman_sprite=pacman_sprite
+            pacman_sprite=pacman_sprite,
+            pacman_death_images=pacman_death_images,
         )
 
         self.__pellet_renderer = PelletRenderer()
@@ -77,6 +81,14 @@ class GameScreen(Screen):
 
         self.__game_overlay_renderer = GameOverlayRenderer()
 
+        self.__hud_renderer = HudRenderer()
+
+        self.__initial_loading = True
+
+        self.__loading_frame_shown = False
+        self.__game_resources_prepared = False
+        self.__discard_next_delta = False
+
     def handle_event(
         self: "GameScreen",
         event: GraphicsEvent,
@@ -87,12 +99,19 @@ class GameScreen(Screen):
 
         if change_resolution:
             self.__layout.reset()
+
             self.__maze_renderer.invalidate()
             self.__pellet_renderer.invalidate()
             self.__player_renderer.invalidate()
             self.__ghosts_renderer.invalidate()
+            self.__hud_renderer.invalidate()
+
+            self.__game_resources_prepared = False
+            self.__discard_next_delta = False
+
             if state.game_state is not None:
                 state.game_state.player.reset_position()
+
             return
 
         if event.type != EventType.KEY_DOWN:
@@ -143,6 +162,13 @@ class GameScreen(Screen):
             return
 
         if game_state.power_pellets is None or game_state.pellets is None:
+            return
+
+        if not self.__game_resources_prepared:
+            return
+
+        if self.__discard_next_delta:
+            self.__discard_next_delta = False
             return
 
         if self.__game_rules_controller.update_phase(
@@ -231,6 +257,29 @@ class GameScreen(Screen):
             )
             return
 
+        if self.__initial_loading:
+            if not self.__loading_frame_shown:
+                self.__loading_frame_shown = True
+                return
+            if not self.__game_resources_prepared:
+                self.__prepare_game_resources(display=display)
+
+                self.__game_resources_prepared = True
+                self.__initial_loading = False
+
+                game_state.start_phase(
+                    phase=GamePhase.COUNTDOWN,
+                    duration=COUNTDOWN_DURATION,
+                )
+
+                self.__discard_next_delta = True
+
+        if not self.__game_resources_prepared:
+            self.__prepare_game_resources(display=display)
+
+            self.__game_resources_prepared = True
+            self.__discard_next_delta = True
+
         self.__maze_renderer.render(
             display=display,
             image=image,
@@ -264,6 +313,7 @@ class GameScreen(Screen):
                 image=image,
                 player=game_state.player,
                 player_size=self.__layout.player_size,
+                game_state=game_state,
             )
 
         if self.__layout.ghost_size is not None:
@@ -281,6 +331,13 @@ class GameScreen(Screen):
             game_state=game_state,
             layout=self.__layout,
             level=state.game_state.level
+        )
+
+        self.__hud_renderer.render(
+            display=display,
+            image=image,
+            game_state=game_state,
+            layout=self.__layout,
         )
 
     def __initialize_layout(
@@ -345,4 +402,13 @@ class GameScreen(Screen):
                 self.__layout.padding,
                 self.__layout.padding,
             ),
+        )
+
+    def __prepare_game_resources(
+        self: "GameScreen",
+        display: GraphicsBackend,
+    ) -> None:
+        self.__hud_renderer.prepare(
+            display=display,
+            layout=self.__layout,
         )

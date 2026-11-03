@@ -8,8 +8,7 @@ from ...models import (
     PlayerModel,
     Position,
 )
-
-POSITION_EPSILON = 0.001
+from ...constants import POSITION_EPSILON
 
 
 class PlayerController:
